@@ -1,34 +1,16 @@
-# ======================== Core ========================
-Flask==3.0.0
+Flask==2.3.3
 Flask-SQLAlchemy==3.1.1
 Flask-Login==0.6.2
-Flask-WTF==1.2.1
-Werkzeug==3.0.1
-
-# ======================== OAuth ========================
-requests-oauthlib==1.3.1
-
-# ======================== Database ========================
-SQLAlchemy==2.0.23
-
-# ======================== HTTP Requests ========================
+Flask-WTF==1.1.1
+Werkzeug==2.3.7
 requests==2.31.0
-
-# ======================== PDF & Excel ========================
-PyPDF2==3.0.1
-pandas==2.1.4
-openpyxl==3.1.2
-
-# ======================== Web Scraping ========================
 beautifulsoup4==4.12.2
-lxml==4.9.3
-
-# ======================== Word Documents ========================
-python-docx==1.1.0
-
-# ======================== QR Code ========================
+PyPDF2==3.0.1
+pandas==2.1.1
 qrcode==7.4.2
-Pillow==10.1.0
-
-# ======================== Environment ========================
+Pillow==10.0.1
+python-docx==1.1.0
+openpyxl==3.1.2
 python-dotenv==1.0.0
+requests-oauthlib==1.3.1
+gunicorn==21.2.0
