@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ثبت نام | هواشناسی هوشمند</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0e27;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+            position: relative;
+        }
+        .weather-bg-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+        .cloud-mega {
+            position: absolute;
+            background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.25) 0%, rgba(200, 220, 240, 0.08) 40%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(40px);
+            animation: floatCloud 25s ease-in-out infinite;
+        }
+        .cloud-mega:nth-child(1) { width: 700px; height: 350px; top: -100px; left: -200px; animation-delay: 0s; }
+        .cloud-mega:nth-child(2) { width: 600px; height: 300px; top: 5%; right: -250px; animation-delay: -8s; }
+        .cloud-mega:nth-child(3) { width: 800px; height: 400px; bottom: -150px; left: 20%; animation-delay: -15s; }
+        .cloud-mega:nth-child(4) { width: 500px; height: 250px; top: 40%; left: -150px; animation-delay: -20s; }
+        @keyframes floatCloud {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(40px, -25px) scale(1.08); }
+            50% { transform: translate(-20px, 15px) scale(0.95); }
+            75% { transform: translate(-35px, -10px) scale(1.05); }
+        }
+        .lightning-strike {
+            position: absolute;
+            width: 3px;
+            background: linear-gradient(180deg, rgba(255, 255, 200, 0.9) 0%, rgba(180, 210, 255, 0.5) 50%, transparent 100%);
+            filter: blur(2px);
+            box-shadow: 0 0 30px rgba(255, 255, 200, 0.7), 0 0 60px rgba(150, 200, 255, 0.5);
+            animation: lightningFlash 4s ease-in-out infinite;
+            opacity: 0;
+            transform-origin: top center;
+        }
+        .lightning-strike:nth-child(5) { height: 300px; top: 5%; left: 12%; animation-delay: 0s; transform: rotate(-8deg); }
+        .lightning-strike:nth-child(6) { height: 250px; top: 10%; right: 18%; animation-delay: 2.5s; transform: rotate(12deg); }
+        .lightning-strike:nth-child(7) { height: 350px; top: 2%; left: 60%; animation-delay: 1.2s; transform: rotate(5deg); }
+        @keyframes lightningFlash {
+            0%, 93%, 96%, 100% { opacity: 0; filter: blur(2px); }
+            94% { opacity: 1; filter: blur(0.5px); }
+            95% { opacity: 0.4; filter: blur(3px); }
+        }
+        .particle-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+        .rain-drop {
+            position: absolute;
+            width: 2px;
+            background: linear-gradient(180deg, transparent, rgba(180, 210, 255, 0.6));
+            animation: rainFall linear infinite;
+            border-radius: 0 0 5px 5px;
+        }
+        .snow-flake {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            filter: blur(1px);
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+            animation: snowFall linear infinite;
+        }
+        @keyframes rainFall {
+            0% { transform: translateY(-10vh) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(110vh) translateX(-30px); opacity: 0; }
+        }
+        @keyframes snowFall {
+            0% { transform: translateY(-10vh) translateX(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.6; }
+            100% { transform: translateY(110vh) translateX(50px) rotate(360deg); opacity: 0; }
+        }
+        .fog-layer {
+            position: fixed;
+            top: 0;
+            left: -50%;
+            width: 200%;
+            height: 100%;
+            background: radial-gradient(ellipse at 30% 50%, rgba(150, 180, 210, 0.08) 0%, transparent 60%),
+                        radial-gradient(ellipse at 70% 30%, rgba(200, 210, 230, 0.05) 0%, transparent 50%);
+            animation: fogDrift 30s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+        @keyframes fogDrift {
+            0%, 100% { transform: translateX(0); }
+            33% { transform: translateX(5%); }
+            66% { transform: translateX(-3%); }
+        }
+        .sun-halo {
+            position: fixed;
+            top: -80px;
+            right: -80px;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255, 200, 100, 0.3) 0%, rgba(255, 150, 50, 0.15) 25%, transparent 60%);
+            border-radius: 50%;
+            filter: blur(15px);
+            animation: sunPulse 8s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+        @keyframes sunPulse {
+            0%, 100% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.3); opacity: 1; }
+        }
+        .register-card {
+            background: rgba(15, 20, 40, 0.75);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-radius: 28px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 0 80px rgba(80, 140, 220, 0.2), 0 0 150px rgba(130, 80, 200, 0.1);
+            padding: 45px 40px;
+            max-width: 470px;
+            width: 90%;
+            position: relative;
+            z-index: 10;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        .register-card:hover {
+            box-shadow: 0 35px 100px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 120px rgba(80, 160, 240, 0.35), 0 0 200px rgba(150, 100, 220, 0.2);
+            transform: translateY(-5px);
+        }
+        .register-card::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            border-radius: 30px;
+            background: linear-gradient(45deg, rgba(100, 180, 255, 0.4), rgba(150, 220, 255, 0.2), rgba(180, 140, 240, 0.4), rgba(100, 200, 220, 0.3), rgba(80, 150, 240, 0.5));
+            z-index: -1;
+            filter: blur(12px);
+            animation: borderGlow 4s linear infinite;
+            background-size: 300% 300%;
+        }
+        @keyframes borderGlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .weather-icon-float {
+            position: absolute;
+            font-size: 2.8rem;
+            color: rgba(255, 255, 255, 0.5);
+            animation: iconFloat 6s ease-in-out infinite;
+            pointer-events: none;
+            filter: drop-shadow(0 0 15px rgba(150, 200, 255, 0.6));
+            z-index: 20;
+        }
+        .weather-icon-float:nth-child(1) { top: -35px; left: 25px; animation-delay: 0s; color: rgba(255, 200, 80, 0.7); }
+        .weather-icon-float:nth-child(2) { top: -40px; right: 30px; animation-delay: -2s; color: rgba(150, 200, 255, 0.6); }
+        .weather-icon-float:nth-child(3) { bottom: -30px; left: 40px; animation-delay: -4s; color: rgba(180, 160, 240, 0.5); }
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            33% { transform: translateY(-18px) rotate(8deg); }
+            66% { transform: translateY(8px) rotate(-5deg); }
+        }
+        .register-header {
+            text-align: center;
+            margin-bottom: 35px;
+            position: relative;
+        }
+        .register-header i {
+            font-size: 4rem;
+            background: linear-gradient(180deg, #ffd700 0%, #ff8c00 40%, #ff6b35 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 4px 20px rgba(255, 180, 40, 0.7)) drop-shadow(0 0 40px rgba(255, 150, 30, 0.5));
+            animation: iconPulse 3s ease-in-out infinite;
+            margin-bottom: 10px;
+        }
+        @keyframes iconPulse {
+            0%, 100% { filter: drop-shadow(0 4px 20px rgba(255, 180, 40, 0.7)) drop-shadow(0 0 40px rgba(255, 150, 30, 0.5)); transform: scale(1); }
+            50% { filter: drop-shadow(0 4px 35px rgba(255, 200, 50, 1)) drop-shadow(0 0 70px rgba(255, 180, 40, 0.9)); transform: scale(1.08); }
+        }
+        .register-header h3 {
+            color: #e8eeff;
+            font-weight: 700;
+            font-size: 1.7rem;
+            text-shadow: 0 2px 15px rgba(100, 150, 220, 0.5);
+            letter-spacing: 1px;
+        }
+        .register-header p {
+            color: #a0b8d8;
+            font-size: 0.95rem;
+            text-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
+        }
+        .form-control {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: #ffffff;
+            backdrop-filter: blur(10px);
+            transition: all 0.4s;
+            font-size: 0.95rem;
+        }
+        .form-control:focus {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: #ffd700;
+            box-shadow: 0 0 25px rgba(255, 200, 40, 0.35), 0 0 0 3px rgba(255, 200, 40, 0.1);
+            color: #ffffff;
+        }
+        .form-control::placeholder { color: rgba(255, 255, 255, 0.35); }
+        .input-group-text {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffd700;
+            backdrop-filter: blur(10px);
+        }
+        .btn-register {
+            background: linear-gradient(135deg, #1a3a5c 0%, #0d2137 40%, #1a4a7a 100%);
+            border: 1px solid rgba(255, 200, 50, 0.4);
+            color: #ffd700;
+            padding: 14px;
+            font-weight: 700;
+            font-size: 1.05rem;
+            letter-spacing: 1.5px;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-register::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 60%);
+            animation: btnShine 3s infinite;
+        }
+        @keyframes btnShine {
+            0% { transform: rotate(0deg) translate(-30%, -30%); }
+            100% { transform: rotate(360deg) translate(-30%, -30%); }
+        }
+        .btn-register:hover {
+            background: linear-gradient(135deg, #2a5a8c 0%, #1a3a5c 40%, #2a6aaa 100%);
+            border-color: #ffd700;
+            color: #fff8d0;
+            transform: translateY(-4px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5), 0 0 40px rgba(255, 200, 40, 0.5), 0 0 80px rgba(100, 180, 240, 0.25);
+        }
+        .login-link {
+            color: #ffd700;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.3s;
+            text-shadow: 0 0 8px rgba(255, 200, 40, 0.4);
+        }
+        .login-link:hover {
+            color: #fff5b0;
+            text-shadow: 0 0 20px rgba(255, 220, 60, 0.9);
+            text-decoration: none;
+        }
+        .alert {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #e0e8ff;
+            backdrop-filter: blur(15px);
+            border-radius: 10px;
+        }
+        .alert-success { border-color: rgba(100, 220, 150, 0.5); background: rgba(30, 80, 50, 0.4); }
+        .alert-danger { border-color: rgba(255, 100, 100, 0.5); background: rgba(80, 30, 30, 0.4); }
+        .alert-warning { border-color: rgba(255, 200, 50, 0.5); background: rgba(80, 60, 20, 0.4); }
+        @media (max-width: 576px) {
+            .register-card { padding: 30px 20px; border-radius: 22px; margin: 15px; }
+            .register-header i { font-size: 3rem; }
+            .weather-icon-float { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="fog-layer"></div>
+    <div class="weather-bg-layer">
+        <div class="cloud-mega"></div>
+        <div class="cloud-mega"></div>
+        <div class="cloud-mega"></div>
+        <div class="cloud-mega"></div>
+    </div>
+    <div class="weather-bg-layer">
+        <div class="lightning-strike"></div>
+        <div class="lightning-strike"></div>
+        <div class="lightning-strike"></div>
+    </div>
+    <div class="sun-halo"></div>
+    <div class="particle-layer" id="particleLayer"></div>
+    <div class="register-card">
+        <span class="weather-icon-float">☀️</span>
+        <span class="weather-icon-float">🌩️</span>
+        <span class="weather-icon-float">🌈</span>
+        <div class="register-header">
+            <i class="fas fa-cloud-sun-rain"></i>
+            <h3>ثبت نام در هواشناسی هوشمند</h3>
+            <p class="text-muted">پس از ثبت نام، منتظر تایید ادمین باشید</p>
+        </div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endwith %}
+        <form method="post">
+            <div class="mb-3">
+                <label class="form-label text-light">نام کاربری</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                    <input type="text" name="username" class="form-control" required>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label text-light">ایمیل</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                    <input type="email" name="email" class="form-control" required>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label text-light">رمز عبور</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                    <input type="password" name="password" class="form-control" required>
+                </div>
+                <small class="text-muted">حداقل ۶ کاراکتر</small>
+            </div>
+            <button type="submit" class="btn btn-register w-100">
+                <i class="fas fa-user-check me-2"></i>ثبت نام
+            </button>
+        </form>
+        <div class="text-center mt-3">
+            <p class="text-muted">قبلاً ثبت نام کرده‌اید؟ <a href="{{ url_for('login') }}" class="login-link">وارد شوید</a></p>
+        </div>
+    </div>
+    <script>
+        const particleLayer = document.getElementById('particleLayer');
+        const particleCount = 70;
+        for (let i = 0; i < particleCount; i++) {
+            const isSnow = Math.random() > 0.55;
+            const particle = document.createElement('div');
+            if (isSnow) {
+                particle.className = 'snow-flake';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDuration = (Math.random() * 8 + 7) + 's';
+                particle.style.animationDelay = Math.random() * 10 + 's';
+                particle.style.width = (Math.random() * 7 + 4) + 'px';
+                particle.style.height = particle.style.width;
+            } else {
+                particle.className = 'rain-drop';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDuration = (Math.random() * 1.5 + 0.7) + 's';
+                particle.style.animationDelay = Math.random() * 3 + 's';
+                particle.style.height = (Math.random() * 25 + 15) + 'px';
+                particle.style.width = (Math.random() * 2 + 1) + 'px';
+            }
+            particleLayer.appendChild(particle);
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

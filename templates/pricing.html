@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اشتراک‌ها | هواشناسی هوشمند</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: #0a0e27;
+            min-height: 100vh;
+            color: #e8edf5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .navbar-custom {
+            background: rgba(10, 14, 30, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: #e8edf5;
+        }
+        .navbar-brand i { color: #6c8cff; }
+        
+        .pricing-header {
+            text-align: center;
+            padding: 40px 0 20px;
+        }
+        .pricing-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(180deg, #ffd700, #ff8c00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .pricing-header p {
+            color: #8a9bb0;
+            font-size: 1.1rem;
+        }
+        
+        .pricing-card {
+            background: rgba(20, 26, 46, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 35px 30px;
+            transition: all 0.4s;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(108, 140, 255, 0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        .pricing-card .plan-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+        .pricing-card .plan-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #e8edf5;
+        }
+        .pricing-card .plan-price {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: #ffd700;
+            margin: 15px 0;
+        }
+        .pricing-card .plan-price small {
+            font-size: 1rem;
+            color: #8a9bb0;
+        }
+        .pricing-card .plan-features {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+        .pricing-card .plan-features li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            color: #cbd5e1;
+        }
+        .pricing-card .plan-features li i {
+            margin-left: 10px;
+        }
+        .pricing-card .plan-features li .fa-check { color: #6ee7b7; }
+        .pricing-card .plan-features li .fa-times { color: #f87171; }
+        
+        .btn-buy {
+            border-radius: 50px;
+            padding: 12px 30px;
+            font-weight: 700;
+            transition: all 0.4s ease;
+            width: 100%;
+            border: none;
+        }
+        .btn-basic {
+            background: rgba(255, 255, 255, 0.05);
+            color: #8a9bb0;
+        }
+        .btn-basic:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e8edf5;
+        }
+        .btn-premium {
+            background: linear-gradient(135deg, #34d399, #059669);
+            color: white;
+            box-shadow: 0 4px 20px rgba(52, 211, 153, 0.3);
+        }
+        .btn-premium:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 35px rgba(52, 211, 153, 0.4);
+            color: white;
+        }
+        .btn-vip {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #0a0e1a;
+            box-shadow: 0 4px 20px rgba(251, 191, 36, 0.3);
+        }
+        .btn-vip:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 35px rgba(251, 191, 36, 0.4);
+            color: #0a0e1a;
+        }
+        .recommended-badge {
+            position: absolute;
+            top: -1px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #0a0e1a;
+            padding: 4px 20px;
+            border-radius: 0 0 12px 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        .current-plan-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, #6c8cff, #7c5cbf);
+            color: white;
+            padding: 4px 14px;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        @media (max-width: 768px) {
+            .pricing-header h1 { font-size: 1.8rem; }
+            .pricing-card { padding: 25px 20px; }
+            .pricing-card .plan-price { font-size: 2.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-cloud-sun me-2"></i>هواشناسی هوشمند
+            </a>
+            <div class="ms-auto d-flex align-items-center gap-3">
+                <span class="text-light opacity-75" style="font-size: 0.9rem;">
+                    <i class="fas fa-user me-1"></i>{{ user.username }}
+                    {% if user.account_type == 'basic' %}
+                        <span class="basic-badge" style="background:rgba(108,117,125,0.3);color:#adb5bd;padding:2px 10px;border-radius:50px;font-size:0.7rem;">ساده</span>
+                    {% elif user.account_type == 'premium' %}
+                        <span class="premium-badge" style="background:linear-gradient(135deg,#34d399,#059669);color:white;padding:2px 10px;border-radius:50px;font-size:0.7rem;">پریمیوم</span>
+                    {% elif user.account_type == 'vip' %}
+                        <span class="vip-badge" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#0a0e1a;padding:2px 10px;border-radius:50px;font-size:0.7rem;">VIP</span>
+                    {% endif %}
+                </span>
+                <a class="btn btn-outline-light btn-sm rounded-pill px-3" href="{{ url_for('index') }}">
+                    <i class="fas fa-home"></i>
+                </a>
+                <a class="btn btn-outline-light btn-sm rounded-pill px-3" href="{{ url_for('logout') }}">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <div class="pricing-header">
+            <h1>🚀 اشتراک‌های هواشناسی هوشمند</h1>
+            <p>سطح دسترسی خود را ارتقا دهید و از امکانات پیشرفته استفاده کنید</p>
+        </div>
+
+        <div class="row g-4 mt-3">
+            <!-- Basic Plan -->
+            <div class="col-md-4">
+                <div class="pricing-card text-center">
+                    <span class="plan-icon">🌤️</span>
+                    <div class="plan-name">ساده</div>
+                    <div class="plan-price">رایگان</div>
+                    <ul class="plan-features text-end">
+                        <li><i class="fas fa-check text-success"></i> مشاهده آب و هوای شهر</li>
+                        <li><i class="fas fa-check text-success"></i> اخبار هواشناسی</li>
+                        <li><i class="fas fa-times text-danger"></i> پیش‌بینی ۷ روزه</li>
+                        <li><i class="fas fa-times text-danger"></i> تحلیل فایل‌ها</li>
+                        <li><i class="fas fa-times text-danger"></i> مشاوره تخصصی</li>
+                        <li><i class="fas fa-times text-danger"></i> پیام به ادمین</li>
+                    </ul>
+                    <button class="btn btn-basic btn-buy" disabled>
+                        <i class="fas fa-check me-2"></i>طرح فعلی
+                    </button>
+                </div>
+            </div>
+
+            <!-- Premium Plan -->
+            <div class="col-md-4">
+                <div class="pricing-card text-center">
+                    <div class="recommended-badge">⭐ پیشنهادی</div>
+                    <span class="plan-icon">⭐</span>
+                    <div class="plan-name">پریمیوم</div>
+                    <div class="plan-price">۱۰ <small>USDT</small></div>
+                    <ul class="plan-features text-end">
+                        <li><i class="fas fa-check text-success"></i> همه امکانات ساده</li>
+                        <li><i class="fas fa-check text-success"></i> پیش‌بینی ۷ روزه</li>
+                        <li><i class="fas fa-check text-success"></i> تحلیل فایل‌ها</li>
+                        <li><i class="fas fa-times text-danger"></i> مشاوره تخصصی</li>
+                        <li><i class="fas fa-times text-danger"></i> پیام به ادمین</li>
+                        <li><i class="fas fa-check text-success"></i> پشتیبانی ۲۴/۷</li>
+                    </ul>
+                    {% if user.account_type == 'premium' %}
+                        <button class="btn btn-premium btn-buy" disabled>
+                            <i class="fas fa-check me-2"></i>طرح فعلی
+                        </button>
+                    {% else %}
+                        <a href="{{ url_for('checkout', plan='premium') }}" class="btn btn-premium btn-buy">
+                            <i class="fas fa-shopping-cart me-2"></i>خرید اشتراک
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- VIP Plan -->
+            <div class="col-md-4">
+                <div class="pricing-card text-center">
+                    <span class="plan-icon">👑</span>
+                    <div class="plan-name">VIP</div>
+                    <div class="plan-price">۵۰ <small>USDT</small></div>
+                    <ul class="plan-features text-end">
+                        <li><i class="fas fa-check text-success"></i> همه امکانات پریمیوم</li>
+                        <li><i class="fas fa-check text-success"></i> مشاوره تخصصی</li>
+                        <li><i class="fas fa-check text-success"></i> پیام به ادمین</li>
+                        <li><i class="fas fa-check text-success"></i> تحلیل تاریخی</li>
+                        <li><i class="fas fa-check text-success"></i> اولویت در پشتیبانی</li>
+                        <li><i class="fas fa-check text-success"></i> دسترسی به تمام ویژگی‌ها</li>
+                    </ul>
+                    {% if user.account_type == 'vip' %}
+                        <button class="btn btn-vip btn-buy" disabled>
+                            <i class="fas fa-check me-2"></i>طرح فعلی
+                        </button>
+                    {% else %}
+                        <a href="{{ url_for('checkout', plan='vip') }}" class="btn btn-vip btn-buy">
+                            <i class="fas fa-shopping-cart me-2"></i>خرید اشتراک
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-5">
+            <p class="text-muted">
+                <i class="fas fa-shield-alt me-1"></i>
+                پرداخت از طریق ارز دیجیتال USDT (شبکه BSC)
+            </p>
+            <small class="text-muted">
+                پس از پرداخت، اشتراک شما به‌صورت خودکار فعال می‌شود
+            </small>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

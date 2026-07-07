@@ -1,0 +1,2051 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌤️ هواشناسی هوشمند</title>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            background: #0a0e1a;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            color: #e8edf5;
+        }
+        .navbar-custom {
+            background: rgba(10, 14, 30, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .navbar-brand { font-weight: 700; font-size: 1.3rem; color: #e8edf5; }
+        .navbar-brand i { color: #6c8cff; }
+        .card {
+            border: none;
+            border-radius: 20px;
+            background: rgba(20, 26, 46, 0.95);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            overflow: hidden;
+            margin-bottom: 25px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 48px rgba(0,0,0,0.4);
+        }
+        .card-header-custom {
+            background: transparent;
+            padding: 16px 24px;
+            font-weight: 700;
+            font-size: 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            color: #e8edf5;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card-header-custom i { color: #6c8cff; }
+        .card-header-success { color: #6ee7b7; }
+        .card-header-success i { color: #6ee7b7; }
+        .card-header-info { color: #93c5fd; }
+        .card-header-info i { color: #93c5fd; }
+        .card-header-warning { color: #fbbf24; }
+        .card-header-warning i { color: #fbbf24; }
+        .card-body { padding: 20px 24px; }
+
+        .search-container {
+            position: relative;
+            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 4px 4px 4px 18px;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        .search-container:focus-within {
+            border-color: rgba(108, 140, 255, 0.3);
+            box-shadow: 0 0 0 3px rgba(108, 140, 255, 0.05);
+        }
+        .search-container .search-icon { color: #6c8cff; font-size: 1rem; margin-left: 10px; }
+        .search-container input {
+            flex: 1;
+            border: none;
+            outline: none;
+            padding: 10px 0;
+            font-size: 0.95rem;
+            background: transparent;
+            direction: rtl;
+            color: #e8edf5;
+        }
+        .search-container input::placeholder { color: #8a9bb0; }
+        .search-container .search-btn {
+            background: linear-gradient(135deg, #6c8cff, #7c5cbf);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 8px 18px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .search-container .search-btn:hover {
+            transform: scale(1.04);
+            box-shadow: 0 4px 20px rgba(108, 140, 255, 0.25);
+        }
+        .search-results-box {
+            position: absolute;
+            top: calc(100% + 5px);
+            left: 4px;
+            right: 4px;
+            background: rgba(16, 20, 40, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            max-height: 280px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+        }
+        .search-results-box::-webkit-scrollbar { width: 4px; }
+        .search-results-box::-webkit-scrollbar-thumb { background: rgba(108, 140, 255, 0.3); border-radius: 10px; }
+        .search-results-box .result-item {
+            padding: 10px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .search-results-box .result-item:last-child { border-bottom: none; }
+        .search-results-box .result-item:hover { background: rgba(108, 140, 255, 0.06); }
+        .search-results-box .result-item .result-icon { color: #6c8cff; font-size: 0.8rem; }
+        .search-results-box .result-item .result-name { font-weight: 500; color: #e8edf5; }
+        .search-results-box .result-item .result-detail { font-size: 0.75rem; color: #8a9bb0; }
+
+        #map, #forecast-map, #consultation-map {
+            height: 350px;
+            border-radius: 16px;
+            background: #0a0e1a;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+        .nav-tabs {
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.01);
+            border-radius: 16px 16px 0 0;
+            padding: 8px 8px 0 8px;
+        }
+        .nav-tabs .nav-link {
+            color: #8a9bb0;
+            font-weight: 600;
+            padding: 12px 22px;
+            border: none;
+            border-radius: 12px 12px 0 0;
+            transition: all 0.3s ease;
+            position: relative;
+            font-size: 0.9rem;
+        }
+        .nav-tabs .nav-link:hover { color: #e8edf5; background: rgba(255, 255, 255, 0.02); }
+        .nav-tabs .nav-link.active {
+            color: white;
+            background: rgba(108, 140, 255, 0.08);
+        }
+        .nav-tabs .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 20%;
+            right: 20%;
+            height: 2px;
+            background: linear-gradient(90deg, #6c8cff, #7c5cbf);
+            border-radius: 2px;
+        }
+        .nav-tabs .nav-link i { margin-left: 8px; }
+
+        .ventusky-wrapper {
+            position: relative;
+            width: 100%;
+            height: 80vh;
+            min-height: 550px;
+            background: #0a0e1a;
+            border-radius: 0 0 16px 16px;
+            overflow: hidden;
+        }
+        .ventusky-wrapper iframe { width: 100%; height: 100%; border: none; }
+
+        .chat-box {
+            height: 380px;
+            overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 16px;
+            padding: 16px;
+            background: rgba(0,0,0,0.2);
+        }
+        .chat-box .message {
+            margin-bottom: 12px;
+            padding: 10px 16px;
+            border-radius: 16px;
+            max-width: 85%;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            line-height: 1.7;
+            animation: fadeInUp 0.3s ease;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .chat-box .user-msg {
+            background: linear-gradient(135deg, #6c8cff, #7c5cbf);
+            color: white;
+            margin-right: auto;
+            border-bottom-right-radius: 4px;
+        }
+        .chat-box .ai-msg {
+            background: rgba(255, 255, 255, 0.04);
+            color: #e8edf5;
+            margin-left: auto;
+            border-bottom-left-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #6c8cff, #7c5cbf);
+            border: none;
+            color: white;
+            padding: 11px 26px;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(108, 140, 255, 0.2);
+        }
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 35px rgba(108, 140, 255, 0.3);
+            color: white;
+        }
+        .btn-success-custom {
+            background: linear-gradient(135deg, #34d399, #059669);
+            border: none;
+            color: white;
+            padding: 11px 26px;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(52, 211, 153, 0.2);
+        }
+        .btn-success-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 35px rgba(52, 211, 153, 0.3);
+            color: white;
+        }
+        .btn-warning-custom {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            border: none;
+            color: #0a0e1a;
+            padding: 11px 26px;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(251, 191, 36, 0.2);
+        }
+        .btn-warning-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 35px rgba(251, 191, 36, 0.3);
+            color: #0a0e1a;
+        }
+        .btn-outline-glass {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.08);
+            color: #e8edf5;
+            border-radius: 50px;
+            padding: 8px 18px;
+            transition: all 0.3s ease;
+        }
+        .btn-outline-glass:hover { background: rgba(255,255,255,0.04); color: white; }
+
+        .upload-area {
+            border: 2px dashed rgba(255,255,255,0.06);
+            border-radius: 16px;
+            padding: 30px 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.4s ease;
+            background: rgba(255, 255, 255, 0.01);
+        }
+        .upload-area:hover { background: rgba(255, 255, 255, 0.02); border-color: rgba(108, 140, 255, 0.2); }
+        .upload-area.dragover { background: rgba(108, 140, 255, 0.04); border-color: #6c8cff; }
+        .upload-area input { display: none; }
+        .upload-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+            color: #6c8cff;
+            padding: 10px 28px;
+            border-radius: 50px;
+            border: 1px solid rgba(255,255,255,0.06);
+            transition: 0.3s ease;
+        }
+        .upload-label:hover { background: rgba(255,255,255,0.02); transform: translateY(-2px); }
+
+        .file-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
+            border-right: 3px solid #6c8cff;
+            transition: all 0.3s ease;
+        }
+        .file-list-item:hover { background: rgba(255, 255, 255, 0.03); }
+        .file-list-item .file-name { font-weight: 500; color: #e8edf5; }
+        .file-list-item .delete-btn {
+            background: none;
+            border: none;
+            color: #f87171;
+            cursor: pointer;
+            transition: 0.3s ease;
+            padding: 4px 10px;
+            border-radius: 8px;
+        }
+        .file-list-item .delete-btn:hover { background: rgba(239, 68, 68, 0.08); }
+
+        .result-box {
+            background: rgba(0,0,0,0.15);
+            border-radius: 16px;
+            padding: 16px;
+            margin-top: 14px;
+            max-height: 350px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            line-height: 1.8;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+        .ai-response {
+            white-space: pre-wrap;
+            line-height: 1.9;
+            font-size: 14px;
+            color: #e8edf5;
+        }
+        .visual-container {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+        .visual-container .table-container { overflow-x: auto; margin: 16px 0; }
+        .visual-container .table-container table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .visual-container .table-container th {
+            background: rgba(108, 140, 255, 0.08);
+            color: #e8edf5;
+            padding: 10px 14px;
+            text-align: center;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .visual-container .table-container td {
+            padding: 8px 12px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.02);
+            color: #cbd5e1;
+        }
+        .visual-container .table-container tr:nth-child(even) { background: rgba(255,255,255,0.01); }
+        .visual-container .table-container tr:hover { background: rgba(255,255,255,0.02); }
+        .visual-container canvas { max-width: 100%; max-height: 380px; margin: 16px 0; border-radius: 12px; }
+        .chart-wrapper { margin: 16px 0; padding: 16px; background: rgba(0,0,0,0.08); border-radius: 16px; border: 1px solid rgba(255,255,255,0.03); }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(108, 140, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: #6c8cff;
+            animation: spin 0.8s ease-in-out infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .weather-widget {
+            background: rgba(0,0,0,0.15);
+            border-radius: 20px;
+            padding: 24px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.03);
+            position: relative;
+            overflow: hidden;
+        }
+        .weather-widget .temp {
+            font-size: 4rem;
+            font-weight: 700;
+            color: #e8edf5;
+            line-height: 1;
+        }
+        .weather-widget .temp sup { font-size: 1.8rem; color: #6c8cff; }
+        .weather-widget .condition {
+            font-size: 1.2rem;
+            color: #cbd5e1;
+            margin-top: 8px;
+        }
+        .weather-widget .details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .weather-widget .details .detail-item {
+            background: rgba(255,255,255,0.02);
+            border-radius: 12px;
+            padding: 12px;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+        .weather-widget .details .detail-item .label {
+            font-size: 0.7rem;
+            color: #8a9bb0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .weather-widget .details .detail-item .value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #e8edf5;
+            margin-top: 4px;
+        }
+        .weather-icon { font-size: 4rem; margin-bottom: 10px; display: block; }
+        .weather-icon.sunny { color: #fbbf24; }
+        .weather-icon.cloudy { color: #94a3b8; }
+        .weather-icon.rainy { color: #60a5fa; }
+        .weather-icon.partly-cloudy { color: #d4a373; }
+
+        .news-item {
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 12px;
+            border-right: 3px solid #6c8cff;
+            transition: all 0.3s ease;
+        }
+        .news-item:hover { background: rgba(255,255,255,0.03); transform: translateX(-4px); }
+        .news-item .news-title { color: #e8edf5; font-weight: 500; }
+        .news-item .news-title a { color: #93c5fd; text-decoration: none; }
+        .news-item .news-title a:hover { color: #6c8cff; }
+        .news-item .news-source { font-size: 0.7rem; color: #8a9bb0; margin-top: 4px; }
+
+        .chat-user-box {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 16px;
+            padding: 16px;
+            background: rgba(0,0,0,0.15);
+        }
+        .chat-user-box .msg {
+            margin-bottom: 12px;
+            padding: 10px 16px;
+            border-radius: 16px;
+            max-width: 85%;
+            word-wrap: break-word;
+            line-height: 1.6;
+            animation: fadeInUp 0.3s ease;
+        }
+        .chat-user-box .user-msg {
+            background: linear-gradient(135deg, #6c8cff, #7c5cbf);
+            color: white;
+            margin-right: auto;
+            border-bottom-right-radius: 4px;
+        }
+        .chat-user-box .admin-msg {
+            background: rgba(255, 255, 255, 0.04);
+            color: #e8edf5;
+            margin-left: auto;
+            border-bottom-left-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+        .chat-user-box .admin-msg .msg-time {
+            font-size: 0.65rem;
+            color: #8a9bb0;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .text-muted-custom { color: #8a9bb0; }
+        .text-glow { text-shadow: 0 0 30px rgba(108, 140, 255, 0.08); }
+
+        /* Premium/VIP Lock Styles */
+        .locked-feature {
+            position: relative;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .locked-feature::after {
+            content: '🔒';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2rem;
+            z-index: 10;
+        }
+        .upgrade-banner {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #0a0e1a;
+            padding: 10px 20px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+            margin: 10px 0;
+        }
+        .upgrade-banner a {
+            color: #0a0e1a;
+            text-decoration: underline;
+            font-weight: 700;
+        }
+
+        @media (max-width: 768px) {
+            #map, #forecast-map, #consultation-map { height: 220px; }
+            .ventusky-wrapper { height: 50vh; min-height: 350px; }
+            .chat-box, .chat-user-box { height: 220px; }
+            .nav-tabs .nav-link { padding: 8px 12px; font-size: 0.75rem; }
+            .nav-tabs .nav-link i { margin-left: 4px; }
+            .search-container { padding: 4px 4px 4px 12px; }
+            .search-container input { font-size: 0.85rem; padding: 8px 0; }
+            .search-container .search-btn { padding: 6px 14px; font-size: 0.8rem; }
+            .navbar-brand { font-size: 1.1rem; }
+            .weather-widget .temp { font-size: 2.8rem; }
+            .weather-widget .details { grid-template-columns: 1fr 1fr; }
+            .weather-icon { font-size: 3rem; }
+        }
+        @media (max-width: 480px) { .weather-widget .details { grid-template-columns: 1fr; } }
+        
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.01); }
+        ::-webkit-scrollbar-thumb { background: rgba(108, 140, 255, 0.2); border-radius: 10px; }
+
+        .text-light, .text-white, .text-muted-custom, 
+        .nav-link, .card-title, .form-label, 
+        .news-title, .news-title a, .result-name, .user-details .name,
+        .weather-widget .temp, .weather-widget .condition,
+        .chat-box .ai-msg, .chat-user-box .admin-msg,
+        .modal-title, .modal-body, .form-control, .input-group-text {
+            color: #e8edf5 !important;
+        }
+        .form-control {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            color: #e8edf5 !important;
+        }
+        .form-control:focus {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-color: #6c8cff !important;
+            box-shadow: 0 0 0 3px rgba(108, 140, 255, 0.1) !important;
+            color: #e8edf5 !important;
+        }
+        .form-control::placeholder { color: #8a9bb0 !important; }
+        
+        .premium-badge {
+            background: linear-gradient(135deg, #34d399, #059669);
+            color: white;
+            padding: 2px 10px;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .vip-badge {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #0a0e1a;
+            padding: 2px 10px;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .basic-badge {
+            background: rgba(108, 117, 125, 0.3);
+            color: #adb5bd;
+            padding: 2px 10px;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== Navbar ===== -->
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-cloud-sun me-2"></i>هواشناسی هوشمند
+            </a>
+            <div class="ms-auto d-flex align-items-center gap-3">
+                <span class="text-light opacity-75" style="font-size: 0.9rem;">
+                    <i class="fas fa-user me-1"></i>{{ current_user.username }}
+                    {% if current_user.account_type == 'basic' %}
+                        <span class="basic-badge">ساده</span>
+                    {% elif current_user.account_type == 'premium' %}
+                        <span class="premium-badge">پریمیوم</span>
+                    {% elif current_user.account_type == 'vip' %}
+                        <span class="vip-badge">VIP</span>
+                    {% endif %}
+                </span>
+                {% if current_user.is_admin %}
+                <a class="btn btn-outline-light btn-sm rounded-pill px-3" href="{{ url_for('admin') }}">
+                    <i class="fas fa-cog"></i>
+                </a>
+                {% endif %}
+                <a class="btn btn-outline-light btn-sm rounded-pill px-3" href="{{ url_for('pricing') }}">
+                    <i class="fas fa-crown"></i>
+                </a>
+                <a class="btn btn-outline-light btn-sm rounded-pill px-3" href="{{ url_for('logout') }}">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- ===== Tabs ===== -->
+        <ul class="nav nav-tabs nav-fill" id="mainTabs" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active" id="historical-tab" data-bs-toggle="tab" data-bs-target="#historical">
+                    <i class="fas fa-history"></i> تاریخی
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="forecast-tab" data-bs-toggle="tab" data-bs-target="#forecast">
+                    <i class="fas fa-calendar-week"></i> پیش‌بینی
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="consultation-tab" data-bs-toggle="tab" data-bs-target="#consultation">
+                    <i class="fas fa-user-md"></i> مشاوره
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="ventusky-tab" data-bs-toggle="tab" data-bs-target="#ventusky">
+                    <i class="fas fa-cloud-rain"></i> بارش جهانی
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="news-tab" data-bs-toggle="tab" data-bs-target="#news">
+                    <i class="fas fa-newspaper"></i> اخبار
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="files-tab" data-bs-toggle="tab" data-bs-target="#files">
+                    <i class="fas fa-file-upload"></i> فایل‌ها
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="mycity-tab" data-bs-toggle="tab" data-bs-target="#mycity">
+                    <i class="fas fa-city"></i> شهر من
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="messages-tab" data-bs-toggle="tab" data-bs-target="#messages">
+                    <i class="fas fa-envelope"></i> پیام به ادمین
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <!-- ======================== تاریخی ======================== -->
+            <div class="tab-pane fade show active" id="historical">
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header-custom">
+                                <i class="fas fa-map-marker-alt me-2"></i>انتخاب مکان و تاریخ
+                                {% if current_user.account_type != 'vip' and not current_user.is_admin %}
+                                    <span class="vip-badge ms-auto" style="font-size:0.65rem;">🔒 VIP</span>
+                                {% endif %}
+                            </div>
+                            <div class="card-body {% if current_user.account_type != 'vip' and not current_user.is_admin %}locked-feature{% endif %}">
+                                {% if current_user.account_type != 'vip' and not current_user.is_admin %}
+                                    <div class="upgrade-banner">
+                                        <i class="fas fa-crown me-2"></i>
+                                        این بخش نیاز به اشتراک VIP دارد
+                                        <a href="{{ url_for('pricing') }}">ارتقا دهید</a>
+                                    </div>
+                                {% endif %}
+                                <div class="search-container" id="historical-search-container">
+                                    <i class="fas fa-search search-icon"></i>
+                                    <input type="text" id="historical-search-input" placeholder="🔍 جستجوی مکان در جهان..." autocomplete="off">
+                                    <button class="search-btn" onclick="searchLocation('historical')">
+                                        <i class="fas fa-arrow-left"></i>
+                                    </button>
+                                    <div class="search-results-box" id="historical-search-results"></div>
+                                </div>
+                                <div class="mb-3 mt-3">
+                                    <label class="form-label fw-bold text-muted-custom">تاریخ</label>
+                                    <input type="date" id="date-input" class="form-control" value="{{ today }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-muted-custom">سوال</label>
+                                    <textarea id="historical-question" class="form-control" rows="2" placeholder="مثلاً: نمودار دما، بارش و رطوبت را رسم کن"></textarea>
+                                </div>
+                                <button class="btn btn-primary-custom w-100" id="analyze-historical" {% if current_user.account_type != 'vip' and not current_user.is_admin %}disabled{% endif %}>
+                                    <i class="fas fa-robot me-2"></i>تحلیل هوشمند
+                                </button>
+                                <div id="historical-result" class="result-box mt-3"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-body p-0">
+                                <div id="map"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="historical-visual" class="visual-container"></div>
+            </div>
+
+            <!-- ======================== پیش‌بینی ======================== -->
+            <div class="tab-pane fade" id="forecast">
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header-custom card-header-success">
+                                <i class="fas fa-map-pin me-2"></i>پیش‌بینی ۷ روزه
+                                {% if current_user.account_type not in ['premium', 'vip'] and not current_user.is_admin %}
+                                    <span class="premium-badge ms-auto" style="font-size:0.65rem;">🔒 Premium</span>
+                                {% endif %}
+                            </div>
+                            <div class="card-body {% if current_user.account_type not in ['premium', 'vip'] and not current_user.is_admin %}locked-feature{% endif %}">
+                                {% if current_user.account_type not in ['premium', 'vip'] and not current_user.is_admin %}
+                                    <div class="upgrade-banner">
+                                        <i class="fas fa-star me-2"></i>
+                                        این بخش نیاز به اشتراک Premium دارد
+                                        <a href="{{ url_for('pricing') }}">ارتقا دهید</a>
+                                    </div>
+                                {% endif %}
+                                <div class="search-container" id="forecast-search-container">
+                                    <i class="fas fa-search search-icon"></i>
+                                    <input type="text" id="forecast-search-input" placeholder="🔍 جستجوی مکان در جهان..." autocomplete="off">
+                                    <button class="search-btn" onclick="searchLocation('forecast')">
+                                        <i class="fas fa-arrow-left"></i>
+                                    </button>
+                                    <div class="search-results-box" id="forecast-search-results"></div>
+                                </div>
+                                <div class="mb-3 mt-3">
+                                    <label class="form-label fw-bold text-muted-custom">سوال</label>
+                                    <textarea id="forecast-question" class="form-control" rows="2" placeholder="مثلاً: نمودار دما، رطوبت و بارش را رسم کن"></textarea>
+                                </div>
+                                <button class="btn btn-success-custom w-100" id="analyze-forecast" {% if current_user.account_type not in ['premium', 'vip'] and not current_user.is_admin %}disabled{% endif %}>
+                                    <i class="fas fa-cloud-sun me-2"></i>دریافت پیش‌بینی
+                                </button>
+                                <div id="forecast-result" class="result-box mt-3"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-body p-0">
+                                <div id="forecast-map"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="forecast-visual" class="visual-container"></div>
+            </div>
+
+            <!-- ======================== مشاوره سریع ======================== -->
+            <div class="tab-pane fade" id="consultation">
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header-custom card-header-warning">
+                                <i class="fas fa-user-md me-2"></i>مشاوره با متخصص هواشناسی
+                                {% if current_user.account_type != 'vip' and not current_user.is_admin %}
+                                    <span class="vip-badge ms-auto" style="font-size:0.65rem;">🔒 VIP</span>
+                                {% endif %}
+                            </div>
+                            <div class="card-body {% if current_user.account_type != 'vip' and not current_user.is_admin %}locked-feature{% endif %}">
+                                {% if current_user.account_type != 'vip' and not current_user.is_admin %}
+                                    <div class="upgrade-banner">
+                                        <i class="fas fa-crown me-2"></i>
+                                        این بخش نیاز به اشتراک VIP دارد
+                                        <a href="{{ url_for('pricing') }}">ارتقا دهید</a>
+                                    </div>
+                                {% endif %}
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-muted-custom">🌍 مکان (اختیاری)</label>
+                                    <div class="search-container" id="consultation-search-container">
+                                        <i class="fas fa-search search-icon"></i>
+                                        <input type="text" id="consultation-search-input" placeholder="🔍 جستجوی مکان..." autocomplete="off">
+                                        <button class="search-btn" onclick="searchLocation('consultation')">
+                                            <i class="fas fa-arrow-left"></i>
+                                        </button>
+                                        <div class="search-results-box" id="consultation-search-results"></div>
+                                    </div>
+                                    <small class="text-muted-custom">مکان را روی نقشه انتخاب کنید یا جستجو کنید</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-muted-custom">❓ سوال خود را بپرسید</label>
+                                    <textarea id="consultation-question" class="form-control" rows="3" placeholder="مثلاً: وضعیت آب و هوای فردا چگونه است؟ بهترین زمان برای سفر کی است؟"></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex gap-2 flex-wrap">
+                                        <button class="btn btn-outline-glass btn-sm" onclick="setConsultationQuestion('وضعیت آب و هوای فردا در این منطقه چگونه است؟')">
+                                            <i class="fas fa-cloud-sun"></i> فردا
+                                        </button>
+                                        <button class="btn btn-outline-glass btn-sm" onclick="setConsultationQuestion('پیش‌بینی بارش برای هفته آینده چیست؟')">
+                                            <i class="fas fa-cloud-rain"></i> بارش
+                                        </button>
+                                        <button class="btn btn-outline-glass btn-sm" onclick="setConsultationQuestion('بهترین زمان برای سفر به این منطقه کی است؟')">
+                                            <i class="fas fa-plane"></i> سفر
+                                        </button>
+                                    </div>
+                                </div>
+                                <button class="btn btn-warning-custom w-100" id="consultation-btn" {% if current_user.account_type != 'vip' and not current_user.is_admin %}disabled{% endif %}>
+                                    <i class="fas fa-comment-medical me-2"></i>دریافت مشاوره هوشمند
+                                </button>
+                                <div id="consultation-result" class="result-box mt-3"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header-custom card-header-info">
+                                <i class="fas fa-map-marked-alt me-2"></i>مکان مورد نظر را انتخاب کنید
+                            </div>
+                            <div class="card-body p-0">
+                                <div id="consultation-map"></div>
+                            </div>
+                            <div class="card-footer bg-transparent border-0 p-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted-custom small">
+                                        <i class="fas fa-info-circle"></i> مکان را روی نقشه انتخاب کنید
+                                    </span>
+                                    <span class="badge" style="background:linear-gradient(135deg,#6c8cff,#7c5cbf);">
+                                        <i class="fas fa-brain"></i> متخصص
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="consultation-visual" class="visual-container"></div>
+            </div>
+
+            <!-- ======================== بارش جهانی ======================== -->
+            <div class="tab-pane fade" id="ventusky">
+                <div class="card mt-3">
+                    <div class="card-header-custom card-header-info">
+                        <i class="fas fa-cloud-rain me-2"></i>نقشه بارش جهان - Ventusky
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="ventusky-wrapper">
+                            <iframe src="https://www.ventusky.com/#/@41.9,12.5,5" loading="lazy" allowfullscreen></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ======================== اخبار ======================== -->
+            <div class="tab-pane fade" id="news">
+                <div class="card mt-3">
+                    <div class="card-header-custom card-header-info">
+                        <i class="fas fa-newspaper me-2"></i>اخبار لحظه‌ای هواشناسی ایران و جهان
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="badge" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:white;">
+                                <i class="fas fa-iran me-1"></i> شهرخبر
+                            </span>
+                            <span class="badge" style="background:linear-gradient(135deg,#2563eb,#1d4ed8);color:white;">
+                                <i class="fas fa-globe-europe me-1"></i> یورونیوز
+                            </span>
+                        </div>
+                        <div id="global-news-list">
+                            <div class="text-center py-4">
+                                <div class="loading-spinner"></div>
+                                <p class="mt-2 text-muted-custom">در حال دریافت آخرین اخبار...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ======================== فایل‌ها ======================== -->
+            <div class="tab-pane fade" id="files">
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header-custom">
+                                <i class="fas fa-upload me-2"></i>آپلود فایل
+                            </div>
+                            <div class="card-body">
+                                <div class="upload-area" id="uploadArea">
+                                    <input type="file" id="fileInput" multiple accept=".txt,.pdf,.doc,.docx,.xlsx,.xls,.csv,.png,.jpg,.jpeg,.gif">
+                                    <div class="upload-label">
+                                        <i class="fas fa-cloud-upload-alt me-2"></i>
+                                        <span>انتخاب یا کشیدن فایل</span>
+                                    </div>
+                                    <p class="mt-3 text-muted-custom small">📄 TXT, PDF, DOCX, Excel, CSV, تصاویر</p>
+                                </div>
+                                <div id="upload-status" class="mt-2"></div>
+                            </div>
+                        </div>
+                        <div class="card mt-3">
+                            <div class="card-header-custom card-header-success">
+                                <i class="fas fa-file-alt me-2"></i>فایل‌های آپلود شده
+                            </div>
+                            <div class="card-body">
+                                <ul id="file-list" class="list-unstyled"></ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header-custom card-header-info">
+                                <i class="fas fa-comment-dots me-2"></i>چت با هوش مصنوعی
+                                {% if current_user.account_type not in ['premium', 'vip'] and not current_user.is_admin %}
+                                    <span class="premium-badge ms-auto" style="font-size:0.65rem;">🔒 Premium</span>
+                                {% endif %}
+                            </div>
+                            <div class="card-body {% if current_user.account_type not in ['premium', 'vip'] and not current_user.is_admin %}locked-feature{% endif %}">
+                                {% if current_user.account_type not in ['premium', 'vip'] and not current_user.is_admin %}
+                                    <div class="upgrade-banner">
+                                        <i class="fas fa-star me-2"></i>
+                                        این بخش نیاز به اشتراک Premium دارد
+                                        <a href="{{ url_for('pricing') }}">ارتقا دهید</a>
+                                    </div>
+                                {% endif %}
+                                <div class="chat-box" id="chat-box">
+                                    <div class="text-center text-muted-custom py-5">
+                                        <i class="fas fa-robot fa-4x mb-3 d-block text-primary opacity-50"></i>
+                                        <h6 class="fw-bold">🤖 دستیار هوشمند</h6>
+                                        <p class="small opacity-75">فایل آپلود کن یا سوال بپرس</p>
+                                    </div>
+                                </div>
+                                <div class="input-group mt-3">
+                                    <input type="text" id="chat-input" class="form-control" style="border-radius:50px 0 0 50px;" placeholder="پیام..." onkeypress="if(event.key==='Enter') sendMessage()" {% if current_user.account_type not in ['premium', 'vip'] and not current_user.is_admin %}disabled{% endif %}>
+                                    <button class="btn btn-primary-custom rounded-end-pill" onclick="sendMessage()" {% if current_user.account_type not in ['premium', 'vip'] and not current_user.is_admin %}disabled{% endif %}>
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                                <div id="chat-visual" class="visual-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ======================== شهر من ======================== -->
+            <div class="tab-pane fade" id="mycity">
+                <div class="row mt-3">
+                    <div class="col-lg-12">
+                        <div class="card">
+                            <div class="card-header-custom">
+                                <i class="fas fa-city me-2"></i>آب و هوای شهر من - Open-Meteo
+                            </div>
+                            <div class="card-body">
+                                <div class="city-search-section">
+                                    <div class="row g-2 align-items-center">
+                                        <div class="col-md-6">
+                                            <div class="search-container" id="mycity-search-container">
+                                                <i class="fas fa-search search-icon"></i>
+                                                <input type="text" id="mycity-search-input" 
+                                                       placeholder="🔍 جستجوی شهر (فارسی یا انگلیسی)..." 
+                                                       autocomplete="off">
+                                                <button class="search-btn" onclick="searchCity()">
+                                                    <i class="fas fa-arrow-left"></i>
+                                                </button>
+                                                <div class="search-results-box" id="mycity-search-results"></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <button class="btn btn-outline-glass" onclick="detectLocation()">
+                                                <i class="fas fa-crosshairs me-2"></i>تشخیص موقعیت مکانی
+                                            </button>
+                                            <small class="text-muted-custom d-block mt-1">
+                                                مثال: مهدیشهر, Mahdishahr, تهران, Tehran
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="weather-display">
+                                    <div class="weather-widget" id="weatherWidget">
+                                        <div class="text-center py-4 text-muted-custom">
+                                            <i class="fas fa-cloud-sun fa-4x mb-3 d-block opacity-50"></i>
+                                            <p>لطفاً یک شهر انتخاب کنید یا موقعیت خود را به اشتراک بگذارید</p>
+                                            <button class="btn btn-primary-custom btn-sm" onclick="detectLocation()">
+                                                <i class="fas fa-crosshairs me-2"></i>تشخیص موقعیت
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ======================== پیام به ادمین ======================== -->
+            <div class="tab-pane fade" id="messages">
+                <div class="card mt-3">
+                    <div class="card-header-custom card-header-info">
+                        <i class="fas fa-envelope me-2"></i>ارسال پیام به ادمین
+                        {% if current_user.account_type != 'vip' and not current_user.is_admin %}
+                            <span class="vip-badge ms-auto" style="font-size:0.65rem;">🔒 VIP</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body {% if current_user.account_type != 'vip' and not current_user.is_admin %}locked-feature{% endif %}">
+                        {% if current_user.account_type != 'vip' and not current_user.is_admin %}
+                            <div class="upgrade-banner">
+                                <i class="fas fa-crown me-2"></i>
+                                این بخش نیاز به اشتراک VIP دارد
+                                <a href="{{ url_for('pricing') }}">ارتقا دهید</a>
+                            </div>
+                        {% endif %}
+                        <div class="chat-user-box" id="user-chat-box">
+                            <div class="text-center text-muted-custom py-5">
+                                <i class="fas fa-envelope fa-4x mb-3 d-block opacity-50"></i>
+                                <h6 class="fw-bold">💬 پیام به ادمین</h6>
+                                <p class="small opacity-75">پیام خود را بنویسید. ادمین پاسخ خواهد داد.</p>
+                            </div>
+                        </div>
+                        <div class="input-group mt-3">
+                            <input type="text" id="user-chat-input" class="form-control" style="border-radius:50px 0 0 50px;" placeholder="پیام خود را بنویسید..." onkeypress="if(event.key==='Enter') sendUserMessage()" {% if current_user.account_type != 'vip' and not current_user.is_admin %}disabled{% endif %}>
+                            <button class="btn btn-primary-custom rounded-end-pill" onclick="sendUserMessage()" {% if current_user.account_type != 'vip' and not current_user.is_admin %}disabled{% endif %}>
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        // ======================== متغیرها ========================
+        let map, forecastMap, consultationMap;
+        let selectedLat = null, selectedLon = null;
+        let forecastLat = null, forecastLon = null;
+        let consultationLat = null, consultationLon = null;
+        let consultationName = null;
+        let marker = null, forecastMarker = null, consultationMarker = null;
+        let isTyping = false;
+        let chartInstances = {};
+        let searchTimeout = {};
+        let currentCity = '';
+
+        // ======================== جستجوی مکان ========================
+        function searchLocation(type) {
+            const input = document.getElementById(type + '-search-input');
+            const resultsBox = document.getElementById(type + '-search-results');
+            const query = input.value.trim();
+            
+            if (query.length < 2) {
+                resultsBox.style.display = 'none';
+                return;
+            }
+            
+            resultsBox.innerHTML = '<div class="result-item"><span class="text-muted-custom">⏳ جستجو...</span></div>';
+            resultsBox.style.display = 'block';
+            
+            clearTimeout(searchTimeout[type]);
+            searchTimeout[type] = setTimeout(() => {
+                fetch(`/api/search?q=${encodeURIComponent(query)}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        resultsBox.innerHTML = '';
+                        if (!data || !data.length) {
+                            resultsBox.innerHTML = '<div class="result-item"><span class="text-muted-custom">نتیجه‌ای یافت نشد</span></div>';
+                            return;
+                        }
+                        data.forEach(item => {
+                            const row = document.createElement('div');
+                            row.className = 'result-item';
+                            row.innerHTML = `
+                                <i class="fas fa-map-marker-alt result-icon"></i>
+                                <div>
+                                    <div class="result-name">${item.name || 'مکان'}</div>
+                                    <div class="result-detail">${item.display_name || ''}</div>
+                                </div>
+                            `;
+                            row.onclick = function() {
+                                const lat = parseFloat(item.lat);
+                                const lon = parseFloat(item.lon);
+                                const name = item.display_name || item.name || 'مکان انتخاب شده';
+                                
+                                if (type === 'historical') {
+                                    selectedLat = lat; selectedLon = lon;
+                                    if (marker) map.removeLayer(marker);
+                                    marker = L.marker([lat, lon]).addTo(map)
+                                        .bindPopup('📍 ' + name).openPopup();
+                                    map.setView([lat, lon], 10);
+                                } else if (type === 'forecast') {
+                                    forecastLat = lat; forecastLon = lon;
+                                    if (forecastMarker) forecastMap.removeLayer(forecastMarker);
+                                    forecastMarker = L.marker([lat, lon]).addTo(forecastMap)
+                                        .bindPopup('📍 ' + name).openPopup();
+                                    forecastMap.setView([lat, lon], 10);
+                                } else if (type === 'consultation') {
+                                    consultationLat = lat; consultationLon = lon;
+                                    consultationName = name;
+                                    if (consultationMarker) consultationMap.removeLayer(consultationMarker);
+                                    consultationMarker = L.marker([lat, lon]).addTo(consultationMap)
+                                        .bindPopup('📍 ' + name).openPopup();
+                                    consultationMap.setView([lat, lon], 10);
+                                }
+                                
+                                resultsBox.style.display = 'none';
+                                input.value = name;
+                            };
+                            resultsBox.appendChild(row);
+                        });
+                    })
+                    .catch(() => {
+                        resultsBox.innerHTML = '<div class="result-item"><span class="text-danger">❌ خطا در جستجو</span></div>';
+                    });
+            }, 500);
+        }
+
+        // ======================== نقشه‌ها ========================
+        function initMaps() {
+            try {
+                map = L.map('map', { center: [35.6892, 51.3890], zoom: 5, zoomControl: true });
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap'
+                }).addTo(map);
+                map.on('click', function(e) {
+                    selectedLat = e.latlng.lat;
+                    selectedLon = e.latlng.lng;
+                    if (marker) map.removeLayer(marker);
+                    marker = L.marker([selectedLat, selectedLon], { draggable: true })
+                        .addTo(map).bindPopup('📍 انتخاب شده').openPopup();
+                });
+
+                forecastMap = L.map('forecast-map', { center: [35.6892, 51.3890], zoom: 5, zoomControl: true });
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap'
+                }).addTo(forecastMap);
+                forecastMap.on('click', function(e) {
+                    forecastLat = e.latlng.lat;
+                    forecastLon = e.latlng.lng;
+                    if (forecastMarker) forecastMap.removeLayer(forecastMarker);
+                    forecastMarker = L.marker([forecastLat, forecastLon], { draggable: true })
+                        .addTo(forecastMap).bindPopup('📍 انتخاب شده').openPopup();
+                });
+
+                consultationMap = L.map('consultation-map', { center: [35.6892, 51.3890], zoom: 5, zoomControl: true });
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap'
+                }).addTo(consultationMap);
+                consultationMap.on('click', function(e) {
+                    consultationLat = e.latlng.lat;
+                    consultationLon = e.latlng.lng;
+                    consultationName = '📍 انتخاب شده';
+                    if (consultationMarker) consultationMap.removeLayer(consultationMarker);
+                    consultationMarker = L.marker([consultationLat, consultationLon], { draggable: true })
+                        .addTo(consultationMap).bindPopup('📍 انتخاب شده').openPopup();
+                });
+                
+                console.log('✅ نقشه‌ها بارگذاری شدند');
+            } catch(e) {
+                console.error('❌ خطا در بارگذاری نقشه:', e);
+            }
+        }
+
+        // ======================== شهر من ========================
+        function searchCity() {
+            const input = document.getElementById('mycity-search-input');
+            const resultsBox = document.getElementById('mycity-search-results');
+            const query = input.value.trim();
+            
+            if (query.length < 2) {
+                resultsBox.style.display = 'none';
+                return;
+            }
+            
+            resultsBox.innerHTML = '<div class="result-item"><span class="text-muted-custom">⏳ جستجو...</span></div>';
+            resultsBox.style.display = 'block';
+            
+            clearTimeout(searchTimeout['mycity']);
+            searchTimeout['mycity'] = setTimeout(() => {
+                fetch(`/api/search?q=${encodeURIComponent(query)}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        resultsBox.innerHTML = '';
+                        if (!data || !data.length) {
+                            resultsBox.innerHTML = '<div class="result-item"><span class="text-muted-custom">نتیجه‌ای یافت نشد</span></div>';
+                            return;
+                        }
+                        data.forEach(item => {
+                            const row = document.createElement('div');
+                            row.className = 'result-item';
+                            const cityName = item.name || item.display_name?.split(',')[0] || 'مکان';
+                            row.innerHTML = `
+                                <i class="fas fa-city result-icon"></i>
+                                <div>
+                                    <div class="result-name">${cityName}</div>
+                                    <div class="result-detail">${item.display_name || ''}</div>
+                                </div>
+                            `;
+                            row.onclick = function() {
+                                resultsBox.style.display = 'none';
+                                input.value = cityName;
+                                currentCity = cityName;
+                                getWeatherForCity(cityName);
+                            };
+                            resultsBox.appendChild(row);
+                        });
+                    })
+                    .catch(() => {
+                        resultsBox.innerHTML = '<div class="result-item"><span class="text-danger">❌ خطا در جستجو</span></div>';
+                    });
+            }, 500);
+        }
+
+        function detectLocation() {
+            const widget = document.getElementById('weatherWidget');
+            widget.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="loading-spinner"></div>
+                    <p class="mt-2 text-muted-custom">⏳ دریافت موقعیت مکانی...</p>
+                </div>
+            `;
+
+            fetch('/api/detect-location-ip')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.city && data.city !== '') {
+                        currentCity = data.city;
+                        document.getElementById('mycity-search-input').value = data.city;
+                        getWeatherForCity(data.city);
+                    } else {
+                        throw new Error('موقعیت یافت نشد');
+                    }
+                })
+                .catch((err) => {
+                    console.error('خطا در تشخیص موقعیت:', err);
+                    widget.innerHTML = `
+                        <div class="text-center py-4">
+                            <i class="fas fa-map-marker-alt fa-4x mb-3 d-block text-warning opacity-50"></i>
+                            <p class="text-muted-custom">نتیجه‌ای یافت نشد. لطفاً شهر خود را جستجو کنید.</p>
+                            <div class="search-container" style="max-width:400px;margin:0 auto;">
+                                <i class="fas fa-search search-icon"></i>
+                                <input type="text" id="fallback-search-input" placeholder="🔍 نام شهر را وارد کنید..." autocomplete="off">
+                                <button class="search-btn" onclick="fallbackSearch()">
+                                    <i class="fas fa-arrow-left"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    document.getElementById('fallback-search-input')?.addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter') fallbackSearch();
+                    });
+                });
+        }
+
+        function fallbackSearch() {
+            const input = document.getElementById('fallback-search-input');
+            if (!input) return;
+            const city = input.value.trim();
+            if (city) {
+                currentCity = city;
+                document.getElementById('mycity-search-input').value = city;
+                getWeatherForCity(city);
+            }
+        }
+
+        function getWeatherForCity(city) {
+            const widget = document.getElementById('weatherWidget');
+            widget.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="loading-spinner"></div>
+                    <p class="mt-2 text-muted-custom">⏳ دریافت اطلاعات آب و هوای ${city}...</p>
+                </div>
+            `;
+
+            fetch('/api/my-city/weather', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ city: city })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    widget.innerHTML = `
+                        <div class="text-center py-4">
+                            <i class="fas fa-exclamation-triangle fa-4x mb-3 d-block text-danger opacity-50"></i>
+                            <p class="text-muted-custom">${data.error}</p>
+                            <small class="text-muted-custom">لطفاً نام شهر را به فارسی یا انگلیسی صحیح وارد کنید</small>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const temp = data.temperature || '--';
+                const humidity = data.humidity || '--';
+                const condition = data.condition || 'نامشخص';
+                const pressure = data.pressure || '--';
+                const visibility = data.visibility || '--';
+                const wind_speed = data.wind_speed || '--';
+                const precipitation = data.precipitation || 0;
+
+                let iconClass = 'fa-cloud-sun';
+                let iconColor = 'partly-cloudy';
+                const condLower = condition.toLowerCase();
+                if (condLower.includes('آفتابی') || condLower.includes('صاف')) {
+                    iconClass = 'fa-sun';
+                    iconColor = 'sunny';
+                } else if (condLower.includes('ابری') || condLower.includes('ابر')) {
+                    iconClass = 'fa-cloud';
+                    iconColor = 'cloudy';
+                } else if (condLower.includes('بارانی') || condLower.includes('باران')) {
+                    iconClass = 'fa-cloud-rain';
+                    iconColor = 'rainy';
+                } else if (condLower.includes('برف')) {
+                    iconClass = 'fa-snowflake';
+                    iconColor = 'rainy';
+                }
+
+                let forecastHtml = '';
+                if (data.forecast && data.forecast.length > 0) {
+                    forecastHtml = `
+                        <div style="margin-top:20px;">
+                            <h6 style="color:#e8edf5;">پیش‌بینی ۷ روزه</h6>
+                            <div style="display:flex;overflow-x:auto;gap:10px;padding:10px 0;">
+                                ${data.forecast.map(day => `
+                                    <div style="background:rgba(255,255,255,0.03);border-radius:12px;padding:10px;min-width:100px;text-align:center;border:1px solid rgba(255,255,255,0.03);">
+                                        <div style="font-size:0.7rem;color:#8a9bb0;">${day.date || ''}</div>
+                                        <div style="font-size:0.9rem;color:#e8edf5;font-weight:600;">${day.temp_max || '-'}°</div>
+                                        <div style="font-size:0.8rem;color:#8a9bb0;">${day.temp_min || '-'}°</div>
+                                        <div style="font-size:0.7rem;color:#8a9bb0;">💧 ${day.precipitation || 0}mm</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                widget.innerHTML = `
+                    <div class="weather-widget">
+                        <i class="fas ${iconClass} weather-icon ${iconColor}"></i>
+                        <div class="temp">${temp}<sup>°C</sup></div>
+                        <div class="condition">${condition}</div>
+                        <div style="font-size:0.9rem;color:#a0b4c8;margin-top:4px;">${data.city || city}</div>
+                        <div style="font-size:0.7rem;color:#6a7a8f;margin-top:2px;">منبع: Open-Meteo</div>
+                        <div class="details">
+                            <div class="detail-item">
+                                <div class="label">رطوبت</div>
+                                <div class="value">${humidity}%</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="label">بارش</div>
+                                <div class="value">${precipitation} mm</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="label">باد</div>
+                                <div class="value">${wind_speed} km/h</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="label">فشار</div>
+                                <div class="value">${pressure}</div>
+                            </div>
+                        </div>
+                        ${forecastHtml}
+                    </div>
+                `;
+            })
+            .catch(err => {
+                widget.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="fas fa-exclamation-triangle fa-4x mb-3 d-block text-danger opacity-50"></i>
+                        <p class="text-muted-custom">خطا در دریافت اطلاعات: ${err.message}</p>
+                        <small class="text-muted-custom">لطفاً دوباره تلاش کنید یا شهر دیگری را جستجو کنید</small>
+                    </div>
+                `;
+            });
+        }
+
+        // ======================== اخبار ========================
+        function loadWeatherNews() {
+            const container = document.getElementById('global-news-list');
+            container.innerHTML = `<div class="text-center py-4"><div class="loading-spinner"></div><p class="mt-2 text-muted-custom">در حال دریافت آخرین اخبار...</p></div>`;
+            
+            fetch('/api/weather-news')
+                .then(res => res.json())
+                .then(data => {
+                    container.innerHTML = '';
+                    if (data.news && data.news.length > 0) {
+                        data.news.forEach(item => {
+                            const div = document.createElement('div');
+                            div.className = 'news-item';
+                            const sourceIcon = item.source === 'شهرخبر' ? '🇮🇷' : 
+                                              item.source === 'یورونیوز' ? '🌍' : '📰';
+                            div.innerHTML = `
+                                <div class="news-title">
+                                    <a href="${item.link || '#'}" target="_blank" rel="noopener noreferrer">${item.title}</a>
+                                </div>
+                                <div class="news-source">${sourceIcon} ${item.source || 'خبرگزاری'}</div>
+                            `;
+                            container.appendChild(div);
+                        });
+                    } else {
+                        container.innerHTML = '<p class="text-muted-custom text-center py-4">هیچ خبری یافت نشد</p>';
+                    }
+                })
+                .catch(err => {
+                    console.error('❌ خطا در دریافت اخبار:', err);
+                    container.innerHTML = `
+                        <div class="text-center text-danger py-4">
+                            <i class="fas fa-exclamation-triangle fa-3x mb-3 d-block"></i>
+                            <p>خطا در دریافت اخبار</p>
+                            <small>${err.message}</small>
+                            <button class="btn btn-outline-glass btn-sm mt-2" onclick="loadWeatherNews()">
+                                <i class="fas fa-redo me-1"></i> تلاش مجدد
+                            </button>
+                        </div>
+                    `;
+                });
+        }
+
+        // ======================== پیام‌ها ========================
+        function loadUserMessages() {
+            const box = document.getElementById('user-chat-box');
+            fetch('/api/user/messages')
+                .then(res => res.json())
+                .then(messages => {
+                    box.innerHTML = '';
+                    if (messages.length === 0) {
+                        box.innerHTML = `
+                            <div class="text-center text-muted-custom py-5">
+                                <i class="fas fa-envelope fa-4x mb-3 d-block opacity-50"></i>
+                                <h6 class="fw-bold">💬 پیام به ادمین</h6>
+                                <p class="small opacity-75">هنوز پیامی ارسال نشده است</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    messages.forEach(msg => {
+                        const div = document.createElement('div');
+                        div.className = `msg ${msg.is_from_user ? 'user-msg' : 'admin-msg'}`;
+                        const time = new Date(msg.created_at).toLocaleString('fa-IR');
+                        div.innerHTML = msg.content + (msg.is_from_user ? '' : `<span class="msg-time">${time}</span>`);
+                        box.appendChild(div);
+                    });
+                    box.scrollTop = box.scrollHeight;
+                })
+                .catch(err => {
+                    box.innerHTML = `<p class="text-danger">خطا در دریافت پیام‌ها: ${err.message}</p>`;
+                });
+        }
+
+        function sendUserMessage() {
+            const input = document.getElementById('user-chat-input');
+            const content = input.value.trim();
+            if (!content) return;
+
+            const box = document.getElementById('user-chat-box');
+            const div = document.createElement('div');
+            div.className = 'msg user-msg';
+            div.textContent = content;
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+            input.value = '';
+
+            fetch('/api/user/messages/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: content })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    alert('❌ خطا در ارسال پیام: ' + data.error);
+                }
+                setTimeout(loadUserMessages, 1000);
+            })
+            .catch(err => {
+                alert('❌ خطا در ارسال پیام: ' + err.message);
+            });
+        }
+
+        // ======================== رویدادها ========================
+        document.addEventListener('DOMContentLoaded', function() {
+            ['historical', 'forecast', 'consultation'].forEach(type => {
+                const input = document.getElementById(type + '-search-input');
+                if (input) {
+                    input.addEventListener('input', function() { searchLocation(type); });
+                    input.addEventListener('focus', function() {
+                        if (this.value.trim().length >= 2) {
+                            document.getElementById(type + '-search-results').style.display = 'block';
+                        }
+                    });
+                }
+            });
+
+            const myCityInput = document.getElementById('mycity-search-input');
+            if (myCityInput) {
+                myCityInput.addEventListener('input', searchCity);
+                myCityInput.addEventListener('focus', function() {
+                    if (this.value.trim().length >= 2) {
+                        document.getElementById('mycity-search-results').style.display = 'block';
+                    }
+                });
+            }
+
+            document.addEventListener('click', function(e) {
+                ['historical-search-container', 'forecast-search-container', 'consultation-search-container', 'mycity-search-container'].forEach(id => {
+                    const container = document.getElementById(id);
+                    if (container && !container.contains(e.target)) {
+                        const resultsBox = container.querySelector('.search-results-box');
+                        if (resultsBox) resultsBox.style.display = 'none';
+                    }
+                });
+            });
+
+            document.getElementById('historical-tab').addEventListener('shown.bs.tab', function() {
+                if (map) setTimeout(() => map.invalidateSize(), 300);
+            });
+            document.getElementById('forecast-tab').addEventListener('shown.bs.tab', function() {
+                if (forecastMap) setTimeout(() => forecastMap.invalidateSize(), 300);
+            });
+            document.getElementById('consultation-tab').addEventListener('shown.bs.tab', function() {
+                if (consultationMap) setTimeout(() => consultationMap.invalidateSize(), 300);
+            });
+
+            document.getElementById('news-tab').addEventListener('shown.bs.tab', function() {
+                loadWeatherNews();
+            });
+
+            document.getElementById('messages-tab').addEventListener('shown.bs.tab', function() {
+                loadUserMessages();
+            });
+
+            document.getElementById('mycity-tab').addEventListener('shown.bs.tab', function() {
+                if (!currentCity) {
+                    detectLocation();
+                }
+            });
+
+            document.getElementById('analyze-historical').onclick = function() {
+                if (!selectedLat || !selectedLon) { 
+                    alert('⚠️ لطفاً مکان را روی نقشه تاریخی انتخاب کنید یا از جستجو استفاده کنید.'); 
+                    return; 
+                }
+                const date = document.getElementById('date-input').value;
+                if (!date) { alert('⚠️ لطفاً تاریخ را انتخاب کنید.'); return; }
+                callWeatherAPI('/api/weather/historical', 
+                    { lat: selectedLat, lon: selectedLon, date: date },
+                    'historical-result', 'historical-visual', 'historical-question');
+            };
+
+            document.getElementById('analyze-forecast').onclick = function() {
+                if (!forecastLat || !forecastLon) { 
+                    alert('⚠️ لطفاً مکان را روی نقشه پیش‌بینی انتخاب کنید یا از جستجو استفاده کنید.'); 
+                    return; 
+                }
+                callWeatherAPI('/api/weather/forecast', 
+                    { lat: forecastLat, lon: forecastLon },
+                    'forecast-result', 'forecast-visual', 'forecast-question');
+            };
+
+            document.getElementById('consultation-btn').onclick = function() {
+                const question = document.getElementById('consultation-question').value.trim();
+                if (!question) {
+                    alert('⚠️ لطفاً سوال خود را وارد کنید.');
+                    return;
+                }
+                if (!consultationLat || !consultationLon) {
+                    alert('⚠️ لطفاً مکان را روی نقشه مشاوره انتخاب کنید یا جستجو کنید.');
+                    return;
+                }
+                callConsultationAPI(question);
+            };
+
+            initMaps();
+            loadFiles();
+
+            if (document.getElementById('news-tab').classList.contains('active')) {
+                loadWeatherNews();
+            }
+            if (document.getElementById('messages-tab').classList.contains('active')) {
+                loadUserMessages();
+            }
+            if (document.getElementById('mycity-tab').classList.contains('active')) {
+                setTimeout(detectLocation, 500);
+            }
+        });
+
+        function setConsultationQuestion(text) {
+            document.getElementById('consultation-question').value = text;
+            document.getElementById('consultation-question').focus();
+        }
+
+        function callConsultationAPI(question) {
+            const div = document.getElementById('consultation-result');
+            const visualDiv = document.getElementById('consultation-visual');
+            
+            div.innerHTML = `<div class="text-center py-4"><div class="loading-spinner"></div><p class="mt-2 text-muted-custom">⏳ دریافت مشاوره از متخصص...</p></div>`;
+            visualDiv.innerHTML = '';
+
+            fetch('/api/quick-consultation', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    question: question,
+                    lat: consultationLat,
+                    lon: consultationLon,
+                    location_name: consultationName || 'مکان انتخاب شده'
+                })
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.error) { 
+                    div.innerHTML = `<div class="alert alert-danger rounded-pill">❌ ${res.error}</div>`;
+                    return; 
+                }
+                
+                div.innerHTML = '';
+                if (res.text) {
+                    const c = document.createElement('div');
+                    c.className = 'ai-response';
+                    div.appendChild(c);
+                    typeText(c, res.text, 12, () => { 
+                        if (res.visual) {
+                            renderVisual(res.visual, 'consultation-visual');
+                        }
+                    });
+                }
+            })
+            .catch(err => { 
+                div.innerHTML = `<div class="alert alert-danger rounded-pill">❌ ${err.message}</div>`;
+            });
+        }
+
+        // ======================== آپلود فایل ========================
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const uploadStatus = document.getElementById('upload-status');
+        const fileList = document.getElementById('file-list');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+        uploadArea.addEventListener('dragleave', () => { uploadArea.classList.remove('dragover'); });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
+        });
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length) { handleFiles(fileInput.files); fileInput.value = ''; }
+        });
+
+        function handleFiles(files) {
+            let done = 0;
+            const total = files.length;
+            uploadStatus.innerHTML = `<div class="alert alert-info rounded-pill">⏳ آپلود ${total} فایل...</div>`;
+
+            for (let file of files) {
+                const fd = new FormData();
+                fd.append('file', file);
+                fetch('/api/upload', { method: 'POST', body: fd })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            done++;
+                            loadFiles();
+                            if (done === total) {
+                                uploadStatus.innerHTML = `<div class="alert alert-success rounded-pill">✅ ${total} فایل آپلود شد</div>`;
+                                setTimeout(() => uploadStatus.innerHTML = '', 3000);
+                            }
+                        } else {
+                            uploadStatus.innerHTML = `<div class="alert alert-danger rounded-pill">❌ ${data.error}</div>`;
+                        }
+                    })
+                    .catch(err => {
+                        uploadStatus.innerHTML = `<div class="alert alert-danger rounded-pill">❌ ${err.message}</div>`;
+                    });
+            }
+        }
+
+        function loadFiles() {
+            fetch('/api/files')
+                .then(res => res.json())
+                .then(files => {
+                    fileList.innerHTML = '';
+                    if (files && files.length) {
+                        files.forEach(f => {
+                            const li = document.createElement('li');
+                            li.className = 'file-list-item';
+                            li.innerHTML = `
+                                <span class="file-name"><i class="fas fa-file me-2 text-primary"></i>${f.filename}</span>
+                                <button class="delete-btn" onclick="deleteFile('${f.filename}')">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            `;
+                            fileList.appendChild(li);
+                        });
+                    } else {
+                        fileList.innerHTML = '<li class="text-muted-custom text-center py-3">هیچ فایلی آپلود نشده</li>';
+                    }
+                })
+                .catch(() => { fileList.innerHTML = '<li class="text-muted-custom text-center py-3">خطا</li>'; });
+        }
+
+        function deleteFile(filename) {
+            if (!confirm(`آیا از حذف فایل "${filename}" مطمئن هستید؟`)) return;
+            
+            fetch('/api/files/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename: filename })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    loadFiles();
+                    uploadStatus.innerHTML = `<div class="alert alert-success rounded-pill">✅ فایل "${filename}" حذف شد</div>`;
+                    setTimeout(() => uploadStatus.innerHTML = '', 3000);
+                } else {
+                    uploadStatus.innerHTML = `<div class="alert alert-danger rounded-pill">❌ ${data.error}</div>`;
+                }
+            })
+            .catch(err => {
+                uploadStatus.innerHTML = `<div class="alert alert-danger rounded-pill">❌ ${err.message}</div>`;
+            });
+        }
+
+        // ======================== تایپ ========================
+        function typeText(element, text, speed = 12, callback) {
+            if (isTyping) { element.textContent = text; if (callback) callback(); return; }
+            isTyping = true;
+            const lines = text.split('\n');
+            let li = 0, ci = 0;
+            element.innerHTML = '';
+            
+            function typeLine() {
+                if (li >= lines.length) { isTyping = false; if (callback) callback(); return; }
+                const line = lines[li] || '';
+                const div = document.createElement('div');
+                div.style.marginBottom = '6px';
+                element.appendChild(div);
+                let cur = '';
+                function typeChar() {
+                    if (ci < line.length) {
+                        cur += line[ci];
+                        div.textContent = cur;
+                        ci++;
+                        setTimeout(typeChar, (line[ci-1] === '.' || line[ci-1] === '؟' || line[ci-1] === '!') ? 30 : 10);
+                    } else {
+                        ci = 0;
+                        li++;
+                        setTimeout(typeLine, 15);
+                    }
+                }
+                typeChar();
+            }
+            typeLine();
+        }
+
+        // ======================== رندر ویژوال ========================
+        function renderVisual(visualItems, containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            if (!visualItems || (Array.isArray(visualItems) && visualItems.length === 0)) {
+                container.innerHTML = '<div class="text-muted-custom text-center py-4">📊 داده‌ای برای نمایش وجود ندارد</div>';
+                return;
+            }
+
+            let items = [];
+            if (Array.isArray(visualItems)) {
+                items = visualItems;
+            } else if (typeof visualItems === 'object' && visualItems !== null) {
+                items = [visualItems];
+            } else {
+                container.innerHTML = '<div class="text-muted-custom text-center py-4">📊 داده‌ای برای نمایش وجود ندارد</div>';
+                return;
+            }
+
+            if (items.length === 0) {
+                container.innerHTML = '<div class="text-muted-custom text-center py-4">📊 داده‌ای برای نمایش وجود ندارد</div>';
+                return;
+            }
+
+            let chartIndex = 0;
+            let canvasIds = [];
+
+            items.forEach((item) => {
+                if (!item || typeof item !== 'object') return;
+
+                if (item.type === 'table' && item.headers && item.rows) {
+                    const div = document.createElement('div');
+                    div.className = 'table-container';
+                    div.style.marginBottom = '20px';
+                    
+                    let html = '<table>';
+                    html += '<thead><tr>';
+                    if (Array.isArray(item.headers)) {
+                        item.headers.forEach(h => { html += `<th>${h}</th>`; });
+                    }
+                    html += '</tr></thead>';
+                    html += '<tbody>';
+                    if (Array.isArray(item.rows)) {
+                        item.rows.forEach(row => {
+                            html += '<tr>';
+                            if (Array.isArray(row)) {
+                                row.forEach(cell => {
+                                    const val = (cell !== undefined && cell !== null && cell !== '') ? cell : '-';
+                                    html += `<td>${val}</td>`;
+                                });
+                            }
+                            html += '</tr>';
+                        });
+                    }
+                    html += '</tbody></table>';
+                    div.innerHTML = html;
+                    container.appendChild(div);
+                }
+
+                else if (item.type === 'chart' && item.labels && item.datasets) {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'chart-wrapper';
+                    
+                    if (item.title) {
+                        const title = document.createElement('h6');
+                        title.className = 'text-center mb-3 fw-bold text-light';
+                        title.textContent = item.title;
+                        wrapper.appendChild(title);
+                    }
+                    
+                    const canvas = document.createElement('canvas');
+                    const canvasId = 'chart-' + Date.now() + '-' + chartIndex++;
+                    canvas.id = canvasId;
+                    wrapper.appendChild(canvas);
+                    container.appendChild(wrapper);
+                    canvasIds.push({ id: canvasId, item: item });
+                }
+                
+                else if (item.headers && item.rows) {
+                    const div = document.createElement('div');
+                    div.className = 'table-container';
+                    div.style.marginBottom = '20px';
+                    
+                    let html = '<table>';
+                    if (Array.isArray(item.headers)) {
+                        html += '<thead><tr>';
+                        item.headers.forEach(h => { html += `<th>${h}</th>`; });
+                        html += '</tr></thead>';
+                    }
+                    if (Array.isArray(item.rows)) {
+                        html += '<tbody>';
+                        item.rows.forEach(row => {
+                            html += '<tr>';
+                            if (Array.isArray(row)) {
+                                row.forEach(cell => {
+                                    const val = (cell !== undefined && cell !== null && cell !== '') ? cell : '-';
+                                    html += `<td>${val}</td>`;
+                                });
+                            }
+                            html += '</tr>';
+                        });
+                        html += '</tbody>';
+                    }
+                    html += '</table>';
+                    div.innerHTML = html;
+                    container.appendChild(div);
+                }
+            });
+
+            setTimeout(() => {
+                canvasIds.forEach(({ id, item }) => {
+                    try {
+                        const canvas = document.getElementById(id);
+                        if (!canvas) return;
+                        
+                        const ctx = canvas.getContext('2d');
+                        const chartType = item.chartType || 'line';
+                        const datasets = item.datasets.map(ds => ({
+                            label: ds.label || 'داده',
+                            data: ds.data || [],
+                            borderColor: ds.borderColor || '#6c8cff',
+                            backgroundColor: ds.backgroundColor || 'rgba(108, 140, 255, 0.15)',
+                            borderWidth: ds.borderWidth || 2,
+                            fill: ds.fill || false,
+                            tension: ds.tension || 0.2,
+                            pointRadius: ds.pointRadius || 4
+                        }));
+
+                        const colors = ['#6c8cff', '#f87171', '#6ee7b7', '#fbbf24', '#a78bfa', '#60a5fa'];
+                        datasets.forEach((ds, i) => {
+                            if (!ds.borderColor && !ds.backgroundColor) {
+                                const color = colors[i % colors.length];
+                                ds.borderColor = color;
+                                ds.backgroundColor = color + '33';
+                            }
+                        });
+
+                        if (chartInstances[id]) chartInstances[id].destroy();
+                        chartInstances[id] = new Chart(ctx, {
+                            type: chartType,
+                            data: { labels: item.labels || [], datasets: datasets },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: true,
+                                plugins: {
+                                    legend: { 
+                                        position: 'top',
+                                        labels: { 
+                                            font: { size: 12, weight: 'bold' },
+                                            color: '#e8edf5'
+                                        }
+                                    }
+                                },
+                                scales: {
+                                    y: { 
+                                        beginAtZero: false, 
+                                        ticks: { font: { size: 11 }, color: '#8a9bb0' },
+                                        grid: { color: 'rgba(255,255,255,0.03)' }
+                                    },
+                                    x: { 
+                                        ticks: { font: { size: 11 }, color: '#8a9bb0' },
+                                        grid: { color: 'rgba(255,255,255,0.03)' }
+                                    }
+                                }
+                            }
+                        });
+                    } catch(e) {
+                        console.error('❌ خطا در رسم نمودار:', e);
+                    }
+                });
+            }, 150);
+        }
+
+        function callWeatherAPI(url, data, resultId, visualId, questionId) {
+            const div = document.getElementById(resultId);
+            const question = document.getElementById(questionId)?.value || '';
+            data.question = question;
+            
+            div.innerHTML = `<div class="text-center py-4"><div class="loading-spinner"></div><p class="mt-2 text-muted-custom">⏳ دریافت داده...</p></div>`;
+            document.getElementById(visualId).innerHTML = '';
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.error) { 
+                    div.innerHTML = `<div class="alert alert-danger rounded-pill">❌ ${res.error}</div>`;
+                    return; 
+                }
+                
+                div.innerHTML = '';
+                if (res.text) {
+                    const c = document.createElement('div');
+                    c.className = 'ai-response';
+                    div.appendChild(c);
+                    typeText(c, res.text, 12, () => { 
+                        if (res.visual) {
+                            renderVisual(res.visual, visualId);
+                        }
+                    });
+                }
+            })
+            .catch(err => { 
+                div.innerHTML = `<div class="alert alert-danger rounded-pill">❌ ${err.message}</div>`;
+            });
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            const box = document.getElementById('chat-box');
+            box.innerHTML += `<div class="message user-msg ms-auto">${msg}</div>`;
+            input.value = '';
+            box.scrollTop = box.scrollHeight;
+
+            const loading = document.createElement('div');
+            loading.className = 'message ai-msg me-auto text-muted-custom';
+            loading.innerHTML = '<div class="loading-spinner me-2"></div>در حال پردازش...';
+            box.appendChild(loading);
+            box.scrollTop = box.scrollHeight;
+
+            fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: msg })
+            })
+            .then(res => res.json())
+            .then(res => {
+                loading.remove();
+                if (res.error) {
+                    box.innerHTML += `<div class="message ai-msg me-auto text-danger">❌ ${res.error}</div>`;
+                    box.scrollTop = box.scrollHeight;
+                    return;
+                }
+                const c = document.createElement('div');
+                c.className = 'message ai-msg me-auto';
+                box.appendChild(c);
+                box.scrollTop = box.scrollHeight;
+                if (res.text) {
+                    typeText(c, res.text, 12, () => {
+                        if (res.visual) {
+                            renderVisual(res.visual, 'chat-visual');
+                        }
+                    });
+                }
+            })
+            .catch(err => {
+                loading.remove();
+                box.innerHTML += `<div class="message ai-msg me-auto text-danger">❌ ${err.message}</div>`;
+                box.scrollTop = box.scrollHeight;
+            });
+        }
+
+        // ======================== متغیرهای سراسری ========================
+        window.sendMessage = sendMessage;
+        window.sendUserMessage = sendUserMessage;
+        window.deleteFile = deleteFile;
+        window.renderVisual = renderVisual;
+        window.searchLocation = searchLocation;
+        window.setConsultationQuestion = setConsultationQuestion;
+        window.callWeatherAPI = callWeatherAPI;
+        window.callConsultationAPI = callConsultationAPI;
+        window.searchCity = searchCity;
+        window.detectLocation = detectLocation;
+        window.getWeatherForCity = getWeatherForCity;
+        window.loadWeatherNews = loadWeatherNews;
+        window.loadUserMessages = loadUserMessages;
+        window.fallbackSearch = fallbackSearch;
+        window.loadFiles = loadFiles;
+    </script>
+</body>
+</html>

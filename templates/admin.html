@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پنل مدیریت</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6c8cff;
+            --primary-dark: #5a7ae0;
+            --secondary: #7c5cbf;
+            --bg-gradient: linear-gradient(135deg, #0a0e1a, #141a2e, #0a0e1a);
+            --card-bg: rgba(20, 26, 46, 0.95);
+            --text-primary: #e8edf5;
+            --text-secondary: #8a9bb0;
+            --border-color: rgba(255, 255, 255, 0.04);
+            --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            --radius: 20px;
+            --glow: 0 0 40px rgba(108, 140, 255, 0.08);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-primary);
+        }
+
+        .admin-container { max-width: 1400px; margin: 0 auto; }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+            box-shadow: var(--shadow);
+        }
+
+        .admin-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .admin-title .icon-wrapper {
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            box-shadow: 0 0 30px rgba(108, 140, 255, 0.2);
+        }
+        .admin-title h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .admin-actions {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+        .admin-actions .btn {
+            border-radius: 50px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 600;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        .btn-glass {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-primary);
+        }
+        .btn-glass:hover {
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateY(-2px);
+            color: white;
+        }
+        .btn-glass-danger {
+            background: rgba(239, 68, 68, 0.08);
+            color: #f87171;
+            border-color: rgba(239, 68, 68, 0.12);
+        }
+        .btn-glass-danger:hover {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            transform: translateY(-2px);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            padding: 1.2rem 1.5rem;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(108, 140, 255, 0.15);
+            box-shadow: var(--glow);
+        }
+        .stat-card .number {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .stat-card .label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+
+        .settings-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+        }
+        .settings-card .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            color: var(--text-primary);
+        }
+        .settings-card .card-title i { color: var(--primary); }
+        .settings-card .form-control {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 12px;
+            padding: 0.7rem 1rem;
+            transition: all 0.3s ease;
+        }
+        .settings-card .form-control:focus {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 140, 255, 0.08);
+            color: white;
+        }
+        .settings-card .form-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        .settings-card .btn-save {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 50px;
+            padding: 0.6rem 2rem;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .settings-card .btn-save:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 30px rgba(108, 140, 255, 0.3);
+        }
+
+        .broadcast-section {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+        }
+        .broadcast-section .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            color: var(--text-primary);
+        }
+        .broadcast-section .card-title i { color: #fbbf24; }
+        .broadcast-section .btn-broadcast {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            border: none;
+            border-radius: 50px;
+            padding: 0.6rem 2rem;
+            font-weight: 600;
+            color: #0a0e1a;
+            transition: all 0.3s ease;
+        }
+        .broadcast-section .btn-broadcast:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(251, 191, 36, 0.25);
+        }
+        .broadcast-section .form-control {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 50px;
+            padding: 0.7rem 1.2rem;
+        }
+        .broadcast-section .form-control:focus {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 140, 255, 0.08);
+            color: white;
+        }
+
+        /* ===== سفارشات ===== */
+        .orders-section {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+        }
+        .orders-section .card-header {
+            background: transparent;
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.2rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+        }
+        .orders-section .card-header h5 {
+            margin: 0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            color: var(--text-primary);
+        }
+        .order-status {
+            padding: 0.2rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .order-status.pending {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+        }
+        .order-status.paid {
+            background: rgba(52, 211, 153, 0.2);
+            color: #6ee7b7;
+        }
+        .order-status.rejected {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+
+        .users-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+        .users-card .card-header {
+            background: transparent;
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.2rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+        }
+        .users-card .card-header h5 {
+            margin: 0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            color: var(--text-primary);
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
+            padding: 0.3rem 0.3rem 0.3rem 1.2rem;
+            transition: all 0.3s ease;
+        }
+        .search-box:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 140, 255, 0.05);
+        }
+        .search-box input {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            padding: 0.5rem 0;
+            outline: none;
+            width: 180px;
+        }
+        .search-box input::placeholder { color: var(--text-secondary); }
+        .search-box i { color: var(--text-secondary); }
+
+        .filter-group {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            border-radius: 50px;
+            padding: 0.3rem 1rem;
+            font-size: 0.8rem;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .filter-btn:hover {
+            background: rgba(255, 255, 255, 0.03);
+            color: white;
+        }
+        .filter-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-color: transparent;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            padding: 0 0.5rem 0.5rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            color: var(--text-primary);
+        }
+        table thead th {
+            padding: 1rem 1rem;
+            text-align: right;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+        table tbody td {
+            padding: 0.9rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+            vertical-align: middle;
+        }
+        table tbody tr { transition: all 0.3s ease; }
+        table tbody tr:hover { background: rgba(255, 255, 255, 0.02); }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1rem;
+            color: white;
+            flex-shrink: 0;
+        }
+        .user-avatar-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255,255,255,0.05);
+        }
+        .user-details .name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .user-details .email {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .status-badge {
+            padding: 0.2rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .status-active {
+            background: rgba(52, 211, 153, 0.2);
+            color: #6ee7b7;
+        }
+        .status-inactive {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+        .status-admin {
+            background: rgba(108, 140, 255, 0.2);
+            color: #a5b4fc;
+        }
+
+        .account-badge {
+            padding: 0.2rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .account-basic {
+            background: rgba(108, 117, 125, 0.2);
+            color: #adb5bd;
+        }
+        .account-premium {
+            background: rgba(52, 211, 153, 0.2);
+            color: #6ee7b7;
+        }
+        .account-vip {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+        }
+
+        .unread-badge {
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            padding: 0.15rem 0.5rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin-right: 4px;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+        .action-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-secondary);
+        }
+        .action-btn:hover { transform: scale(1.1); }
+        .action-btn.toggle-active { color: #6ee7b7; }
+        .action-btn.toggle-active:hover { background: rgba(52, 211, 153, 0.08); }
+        .action-btn.toggle-inactive { color: #f87171; }
+        .action-btn.toggle-inactive:hover { background: rgba(239, 68, 68, 0.08); }
+        .action-btn.delete:hover { background: rgba(239, 68, 68, 0.08); color: #fca5a5; }
+        .action-btn.chat-btn { color: #6c8cff; }
+        .action-btn.chat-btn:hover { background: rgba(108, 140, 255, 0.08); }
+
+        .dropdown-menu {
+            background: #1a1e3a !important;
+            border: 1px solid rgba(255,255,255,0.05) !important;
+            border-radius: 12px !important;
+            padding: 0.3rem !important;
+        }
+        .dropdown-item {
+            color: #e8edf5 !important;
+            border-radius: 8px !important;
+            padding: 0.5rem 1rem !important;
+            transition: all 0.3s ease;
+        }
+        .dropdown-item:hover {
+            background: rgba(255,255,255,0.05) !important;
+            color: white !important;
+        }
+        .dropdown-item i { width: 20px; }
+
+        .text-muted-custom { color: var(--text-secondary); }
+
+        .toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 9999;
+            min-width: 300px;
+        }
+        .toast-message {
+            padding: 1rem 1.5rem;
+            border-radius: 16px;
+            background: rgba(16, 20, 40, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            animation: slideIn 0.4s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+        .toast-message i { font-size: 1.3rem; }
+        .toast-message.success i { color: #6ee7b7; }
+        .toast-message.danger i { color: #f87171; }
+        .toast-message.info i { color: #93c5fd; }
+        .toast-message.warning i { color: #fbbf24; }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .empty-state {
+            padding: 3rem 1rem;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+        .empty-state i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.3; }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(108, 140, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: #6c8cff;
+            animation: spin 0.8s ease-in-out infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .chat-modal .modal-content {
+            background: #141a2e;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            color: var(--text-primary);
+        }
+        .chat-modal .modal-header {
+            border-bottom: 1px solid var(--border-color);
+        }
+        .chat-modal .modal-header .btn-close {
+            filter: invert(1) brightness(200%);
+        }
+        .chat-modal .modal-footer {
+            border-top: 1px solid var(--border-color);
+        }
+        .chat-modal .chat-messages {
+            height: 350px;
+            overflow-y: auto;
+            padding: 16px;
+            background: rgba(0,0,0,0.15);
+            border-radius: 12px;
+        }
+        .chat-modal .chat-messages .msg {
+            margin-bottom: 12px;
+            padding: 10px 16px;
+            border-radius: 16px;
+            max-width: 85%;
+            word-wrap: break-word;
+            line-height: 1.6;
+            animation: fadeInUp 0.3s ease;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .chat-modal .chat-messages .user-msg {
+            background: linear-gradient(135deg, #6c8cff, #7c5cbf);
+            color: white;
+            margin-right: auto;
+            border-bottom-right-radius: 4px;
+        }
+        .chat-modal .chat-messages .admin-msg {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-primary);
+            margin-left: auto;
+            border-bottom-left-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.03);
+            position: relative;
+        }
+        .chat-modal .chat-messages .admin-msg .msg-time {
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            display: block;
+        }
+        .chat-modal .chat-messages .admin-msg .delete-msg-btn {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            background: none;
+            border: none;
+            color: #f87171;
+            font-size: 0.7rem;
+            cursor: pointer;
+            opacity: 0.3;
+            transition: opacity 0.3s ease;
+        }
+        .chat-modal .chat-messages .admin-msg .delete-msg-btn:hover { opacity: 1; }
+        .chat-modal .form-control {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 50px;
+        }
+        .chat-modal .form-control:focus {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 140, 255, 0.08);
+            color: white;
+        }
+        .chat-modal .form-control::placeholder {
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .admin-header { padding: 1rem; flex-direction: column; align-items: stretch; }
+            .admin-title h1 { font-size: 1.2rem; }
+            .admin-actions { justify-content: center; }
+            .settings-card { padding: 1rem; }
+            .search-box input { width: 120px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .users-card .card-header { flex-direction: column; align-items: stretch; }
+            .filter-group { justify-content: center; }
+            .broadcast-section { padding: 1rem; }
+            .orders-section .card-header { flex-direction: column; align-items: stretch; }
+        }
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .admin-title .icon-wrapper { width: 40px; height: 40px; font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="admin-container">
+        <!-- ===== Header ===== -->
+        <div class="admin-header">
+            <div class="admin-title">
+                <div class="icon-wrapper"><i class="fas fa-users-cog"></i></div>
+                <h1>مدیریت سیستم</h1>
+            </div>
+            <div class="admin-actions">
+                <a href="{{ url_for('index') }}" class="btn btn-glass">
+                    <i class="fas fa-home"></i> بازگشت
+                </a>
+                <a href="{{ url_for('logout') }}" class="btn btn-glass-danger">
+                    <i class="fas fa-sign-out-alt"></i> خروج
+                </a>
+            </div>
+        </div>
+
+        <!-- ===== Stats ===== -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="number">{{ users|length }}</div>
+                <div class="label">کل کاربران</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">{{ users|selectattr('is_active', 'equalto', True)|list|length }}</div>
+                <div class="label">فعال</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">{{ users|selectattr('is_active', 'equalto', False)|list|length }}</div>
+                <div class="label">غیرفعال</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">{{ users|selectattr('is_admin', 'equalto', True)|list|length }}</div>
+                <div class="label">ادمین</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">{{ orders|length }}</div>
+                <div class="label">سفارشات</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">{{ orders|selectattr('status', 'equalto', 'pending')|list|length }}</div>
+                <div class="label">در انتظار تایید</div>
+            </div>
+        </div>
+
+        <!-- ===== تنظیمات هوش مصنوعی ===== -->
+        <div class="settings-card">
+            <div class="card-title">
+                <i class="fas fa-brain"></i>
+                تنظیمات هوش مصنوعی و کیف پول
+            </div>
+            <form method="POST" action="{{ url_for('admin_settings') }}">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label"><i class="fas fa-key me-1"></i> API Key</label>
+                        <input type="text" class="form-control" name="api_key" value="{{ settings.api_key }}" placeholder="API Key را وارد کنید">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label"><i class="fas fa-link me-1"></i> Base URL</label>
+                        <input type="text" class="form-control" name="base_url" value="{{ settings.base_url }}" placeholder="URL سرور">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label"><i class="fas fa-cube me-1"></i> مدل</label>
+                        <input type="text" class="form-control" name="model" value="{{ settings.model }}" placeholder="نام مدل">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label"><i class="fas fa-wallet me-1"></i> آدرس کیف پول (USDT - BSC)</label>
+                        <input type="text" class="form-control" name="wallet_address" value="{{ settings.wallet_address }}" placeholder="آدرس کیف پول مقصد">
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-save">
+                            <i class="fas fa-save me-2"></i> ذخیره تنظیمات
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- ===== Broadcast ===== -->
+        <div class="broadcast-section">
+            <div class="card-title">
+                <i class="fas fa-bullhorn"></i>
+                ارسال اعلان همگانی
+            </div>
+            <div class="row g-2">
+                <div class="col-md-10">
+                    <input type="text" id="broadcast-input" class="form-control" placeholder="متن اعلان برای تمام کاربران...">
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-broadcast w-100" onclick="sendBroadcast()">
+                        <i class="fas fa-paper-plane me-2"></i>ارسال
+                    </button>
+                </div>
+            </div>
+            <div id="broadcast-status" class="mt-2"></div>
+        </div>
+
+        <!-- ===== سفارشات ===== -->
+        <div class="orders-section">
+            <div class="card-header">
+                <h5><i class="fas fa-shopping-cart me-2"></i>سفارشات پرداخت</h5>
+                <span class="text-muted-custom small">
+                    <i class="fas fa-info-circle me-1"></i>
+                    سفارشات در انتظار تایید: <span class="text-warning fw-bold">{{ orders|selectattr('status', 'equalto', 'pending')|list|length }}</span>
+                </span>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>کد سفارش</th>
+                            <th>کاربر</th>
+                            <th>مبلغ</th>
+                            <th>طرح</th>
+                            <th>وضعیت</th>
+                            <th>تاریخ</th>
+                            <th>عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td><code style="color:#e8edf5;font-size:0.75rem;">{{ order.order_id }}</code></td>
+                            <td>
+                                <div class="user-info">
+                                    <div class="user-avatar" style="width:30px;height:30px;font-size:0.7rem;">{{ order.user.username[0]|upper }}</div>
+                                    <span>{{ order.user.username }}</span>
+                                </div>
+                            </td>
+                            <td>{{ order.amount_usdt }} USDT</td>
+                            <td>
+                                <span class="account-badge account-{{ order.account_type }}">
+                                    {{ {'basic':'ساده','premium':'پریمیوم','vip':'VIP'}.get(order.account_type, 'نامشخص') }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="order-status {{ order.status }}">
+                                    {% if order.status == 'pending' %}⏳ در انتظار
+                                    {% elif order.status == 'paid' %}✅ تایید شده
+                                    {% elif order.status == 'rejected' %}❌ رد شده
+                                    {% else %}{{ order.status }}{% endif %}
+                                </span>
+                            </td>
+                            <td style="font-size:0.75rem;color:var(--text-secondary);">
+                                {{ order.created_at.strftime('%Y-%m-%d %H:%M') if order.created_at else '-' }}
+                            </td>
+                            <td>
+                                {% if order.status == 'pending' %}
+                                <form method="POST" action="{{ url_for('admin_order_status', order_id=order.id) }}" class="d-flex gap-1">
+                                    <input type="hidden" name="status" value="paid">
+                                    <button type="submit" class="btn btn-sm" style="background:rgba(52,211,153,0.15);color:#6ee7b7;border:none;border-radius:8px;padding:0.2rem 0.6rem;">
+                                        <i class="fas fa-check"></i> تایید
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ url_for('admin_order_status', order_id=order.id) }}" class="d-flex gap-1 mt-1">
+                                    <input type="hidden" name="status" value="rejected">
+                                    <button type="submit" class="btn btn-sm" style="background:rgba(239,68,68,0.15);color:#f87171;border:none;border-radius:8px;padding:0.2rem 0.6rem;">
+                                        <i class="fas fa-times"></i> رد
+                                    </button>
+                                </form>
+                                {% else %}
+                                <span class="text-muted-custom" style="font-size:0.7rem;">انجام شده</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7">
+                                <div class="empty-state">
+                                    <i class="fas fa-shopping-cart"></i>
+                                    <div>هیچ سفارشی یافت نشد</div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ===== Users Table ===== -->
+        <div class="users-card">
+            <div class="card-header">
+                <h5><i class="fas fa-users me-2"></i>مدیریت کاربران</h5>
+                <div style="display: flex; gap: 0.8rem; flex-wrap: wrap; align-items: center;">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="جستجوی کاربر...">
+                    </div>
+                    <div class="filter-group">
+                        <button class="filter-btn active" data-filter="all">همه</button>
+                        <button class="filter-btn" data-filter="active">فعال</button>
+                        <button class="filter-btn" data-filter="inactive">غیرفعال</button>
+                        <button class="filter-btn" data-filter="admin">ادمین</button>
+                        <button class="filter-btn" data-filter="basic">ساده</button>
+                        <button class="filter-btn" data-filter="premium">پریمیوم</button>
+                        <button class="filter-btn" data-filter="vip">VIP</button>
+                    </div>
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>کاربر</th>
+                            <th>ایمیل</th>
+                            <th>نوع اکانت</th>
+                            <th>وضعیت</th>
+                            <th>تاریخ ثبت</th>
+                            <th>ورود با گوگل</th>
+                            <th>پیام‌ها</th>
+                            <th>عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTableBody">
+                        {% for user in users %}
+                        <tr data-userid="{{ user.id }}" 
+                            data-status="{% if user.is_admin %}admin{% elif user.is_active %}active{% else %}inactive{% endif %}"
+                            data-account="{{ user.account_type }}">
+                            <td>{{ user.id }}</td>
+                            <td>
+                                <div class="user-info">
+                                    {% if user.profile_picture %}
+                                        <img src="{{ user.profile_picture }}" class="user-avatar-img">
+                                    {% else %}
+                                        <div class="user-avatar">{{ user.username[0]|upper }}</div>
+                                    {% endif %}
+                                    <div class="user-details">
+                                        <div class="name">{{ user.full_name or user.username }}</div>
+                                        <div class="email">@{{ user.username }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="direction:ltr;font-size:0.85rem;">{{ user.email }}</td>
+                            <td>
+                                <span class="account-badge account-{{ user.account_type }}">
+                                    {{ {'basic':'ساده','premium':'پریمیوم','vip':'VIP'}.get(user.account_type, 'نامشخص') }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if user.is_admin %}
+                                    <span class="status-badge status-admin">ادمین</span>
+                                {% elif user.is_active %}
+                                    <span class="status-badge status-active">فعال</span>
+                                {% else %}
+                                    <span class="status-badge status-inactive">غیرفعال</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ user.created_at.strftime('%Y-%m-%d %H:%M') if user.created_at else '-' }}</td>
+                            <td>
+                                {% if user.google_id %}
+                                    <span class="badge" style="background:#4285f4;color:white;">
+                                        <i class="fab fa-google"></i> گوگل
+                                    </span>
+                                {% else %}
+                                    <span class="badge" style="background:#6c757d;color:white;">
+                                        <i class="fas fa-key"></i> محلی
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% set count = user_message_counts.get(user.id, 0) %}
+                                {% if count > 0 %}
+                                    <span class="unread-badge">{{ count }}</span>
+                                {% else %}
+                                    <span class="text-muted-custom">۰</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="action-btn chat-btn" data-id="{{ user.id }}" data-username="{{ user.username }}" onclick="openChat(this)">
+                                        <i class="fas fa-comment"></i>
+                                    </button>
+                                    {% if not user.is_admin %}
+                                        <button class="action-btn toggle-{{ 'inactive' if user.is_active else 'active' }} toggle-status" 
+                                                data-id="{{ user.id }}" 
+                                                data-action="toggle" 
+                                                title="تغییر وضعیت">
+                                            <i class="fas fa-{{ 'pause' if user.is_active else 'play' }}"></i>
+                                        </button>
+                                        <div class="dropdown" style="display:inline-block;">
+                                            <button class="action-btn" data-bs-toggle="dropdown" title="تغییر اکانت">
+                                                <i class="fas fa-crown"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li>
+                                                    <form method="POST" action="{{ url_for('admin_change_account_type', user_id=user.id) }}" style="display:inline;">
+                                                        <input type="hidden" name="account_type" value="basic">
+                                                        <button type="submit" class="dropdown-item">
+                                                            <i class="fas fa-circle" style="color:#6c757d;"></i> ساده
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form method="POST" action="{{ url_for('admin_change_account_type', user_id=user.id) }}" style="display:inline;">
+                                                        <input type="hidden" name="account_type" value="premium">
+                                                        <button type="submit" class="dropdown-item">
+                                                            <i class="fas fa-star" style="color:#34d399;"></i> پریمیوم
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form method="POST" action="{{ url_for('admin_change_account_type', user_id=user.id) }}" style="display:inline;">
+                                                        <input type="hidden" name="account_type" value="vip">
+                                                        <button type="submit" class="dropdown-item">
+                                                            <i class="fas fa-crown" style="color:#fbbf24;"></i> VIP
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <button class="action-btn delete delete-user" 
+                                                data-id="{{ user.id }}" 
+                                                data-action="delete" 
+                                                title="حذف کاربر">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    {% else %}
+                                        <span class="text-muted-custom" style="font-size:0.7rem;">غیرقابل تغییر</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div style="padding: 0.8rem 1.5rem; border-top: 1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+                <small class="text-muted-custom">
+                    <i class="fas fa-shield-alt me-1"></i> 
+                    ادمین‌ها قابل تغییر نیستند · حذف کاربر باعث خروج آنی می‌شود
+                </small>
+                <span class="text-muted-custom" id="userCount">
+                    مجموع: <strong>{{ users|length }}</strong> کاربر
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Chat Modal ===== -->
+    <div class="modal fade chat-modal" id="chatModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="chatModalTitle"><i class="fas fa-comment me-2"></i>چت با <span id="chatUserName">کاربر</span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="text-center text-muted-custom py-4">
+                            <i class="fas fa-comment-dots fa-3x mb-3 d-block opacity-50"></i>
+                            <p>بارگذاری پیام‌ها...</p>
+                        </div>
+                    </div>
+                    <div class="input-group mt-3">
+                        <input type="text" id="chatInput" class="form-control" placeholder="پیام خود را بنویسید..." onkeypress="if(event.key==='Enter') sendAdminMessage()">
+                        <button class="btn btn-primary-custom rounded-end-pill" onclick="sendAdminMessage()" style="background:linear-gradient(135deg,#6c8cff,#7c5cbf);border:none;color:white;padding:0.5rem 1.5rem;border-radius:0 50px 50px 0;">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Toast Container ===== -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function() {
+            'use strict';
+
+            const tbody = document.getElementById('userTableBody');
+            const searchInput = document.getElementById('searchInput');
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            const toastContainer = document.getElementById('toastContainer');
+            const chatModal = new bootstrap.Modal(document.getElementById('chatModal'));
+            let currentChatUserId = null;
+            let currentChatUsername = '';
+
+            function showToast(message, type = 'info') {
+                const iconMap = {
+                    success: 'fa-check-circle',
+                    danger: 'fa-exclamation-circle',
+                    info: 'fa-info-circle',
+                    warning: 'fa-exclamation-triangle'
+                };
+                const icon = iconMap[type] || 'fa-info-circle';
+                const toast = document.createElement('div');
+                toast.className = `toast-message ${type}`;
+                toast.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
+                toastContainer.appendChild(toast);
+                setTimeout(() => {
+                    if (toast.parentNode) toast.remove();
+                }, 4000);
+            }
+
+            let currentFilter = 'all';
+            let searchQuery = '';
+
+            function filterTable() {
+                const rows = tbody.querySelectorAll('tr');
+                let visibleCount = 0;
+                rows.forEach(row => {
+                    const status = row.dataset.status || 'inactive';
+                    const account = row.dataset.account || 'basic';
+                    const name = row.querySelector('.name')?.textContent?.toLowerCase() || '';
+                    const email = row.querySelector('td:nth-child(3)')?.textContent?.toLowerCase() || '';
+                    const username = row.querySelector('.email')?.textContent?.toLowerCase() || '';
+                    const query = searchQuery.toLowerCase();
+
+                    let statusMatch = false;
+                    if (currentFilter === 'all') statusMatch = true;
+                    else if (currentFilter === 'active') statusMatch = status === 'active';
+                    else if (currentFilter === 'inactive') statusMatch = status === 'inactive';
+                    else if (currentFilter === 'admin') statusMatch = status === 'admin';
+                    else if (currentFilter === 'basic') statusMatch = account === 'basic';
+                    else if (currentFilter === 'premium') statusMatch = account === 'premium';
+                    else if (currentFilter === 'vip') statusMatch = account === 'vip';
+
+                    const searchMatch = name.includes(query) || 
+                                       email.includes(query) || 
+                                       username.includes(query);
+
+                    if (statusMatch && searchMatch) {
+                        row.style.display = '';
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+
+                const userCount = document.getElementById('userCount');
+                if (userCount) {
+                    const total = rows.length;
+                    userCount.innerHTML = `نمایش: <strong>${visibleCount}</strong> از <strong>${total}</strong> کاربر`;
+                }
+
+                const existingEmpty = tbody.querySelector('.empty-state-row');
+                if (visibleCount === 0) {
+                    if (!existingEmpty) {
+                        const emptyRow = document.createElement('tr');
+                        emptyRow.className = 'empty-state-row';
+                        emptyRow.innerHTML = `
+                            <td colspan="9">
+                                <div class="empty-state">
+                                    <i class="fas fa-user-slash"></i>
+                                    <div>هیچ کاربری با این فیلتر پیدا نشد</div>
+                                </div>
+                            </td>
+                        `;
+                        tbody.appendChild(emptyRow);
+                    }
+                } else {
+                    if (existingEmpty) existingEmpty.remove();
+                }
+            }
+
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentFilter = this.dataset.filter;
+                    filterTable();
+                });
+            });
+
+            searchInput.addEventListener('input', function() {
+                searchQuery = this.value;
+                filterTable();
+            });
+
+            async function toggleUser(userId) {
+                try {
+                    const response = await fetch(`/admin/users/${userId}/toggle`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        showToast(data.message || 'وضعیت کاربر تغییر کرد', 'success');
+                        setTimeout(() => window.location.reload(), 800);
+                    } else {
+                        showToast(data.error || 'خطا در تغییر وضعیت', 'danger');
+                    }
+                } catch (error) {
+                    showToast('خطا در ارتباط با سرور', 'danger');
+                }
+            }
+
+            async function deleteUser(userId) {
+                if (!confirm('آیا از حذف این کاربر اطمینان دارید؟')) return;
+                try {
+                    const response = await fetch(`/admin/users/${userId}/delete`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        showToast(data.message || 'کاربر حذف شد', 'success');
+                        setTimeout(() => window.location.reload(), 800);
+                    } else {
+                        showToast(data.error || 'خطا در حذف کاربر', 'danger');
+                    }
+                } catch (error) {
+                    showToast('خطا در ارتباط با سرور', 'danger');
+                }
+            }
+
+            window.openChat = function(btn) {
+                const userId = btn.dataset.id;
+                const username = btn.dataset.username || 'کاربر';
+                currentChatUserId = userId;
+                currentChatUsername = username;
+                document.getElementById('chatUserName').textContent = username;
+                
+                const messagesContainer = document.getElementById('chatMessages');
+                messagesContainer.innerHTML = `<div class="text-center text-muted-custom py-4"><div class="loading-spinner"></div><p class="mt-2">بارگذاری پیام‌ها...</p></div>`;
+                
+                chatModal.show();
+                loadChatMessages(userId);
+            };
+
+            function loadChatMessages(userId) {
+                const messagesContainer = document.getElementById('chatMessages');
+                messagesContainer.innerHTML = `<div class="text-center text-muted-custom py-4"><div class="loading-spinner"></div><p class="mt-2">بارگذاری پیام‌ها...</p></div>`;
+                
+                fetch(`/api/admin/messages/${userId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(messages => {
+                    messagesContainer.innerHTML = '';
+                    if (!messages || messages.length === 0) {
+                        messagesContainer.innerHTML = `
+                            <div class="text-center text-muted-custom py-4">
+                                <i class="fas fa-comment-dots fa-3x mb-3 d-block opacity-50"></i>
+                                <p>هیچ پیامی با این کاربر وجود ندارد</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    messages.forEach(msg => {
+                        const div = document.createElement('div');
+                        div.className = `msg ${msg.is_from_user ? 'user-msg' : 'admin-msg'}`;
+                        const time = new Date(msg.created_at).toLocaleString('fa-IR');
+                        if (msg.is_from_user) {
+                            div.textContent = msg.content;
+                        } else {
+                            div.innerHTML = `
+                                ${msg.content}
+                                <span class="msg-time">${time}</span>
+                                <button class="delete-msg-btn" onclick="deleteMessage(${msg.id})" title="حذف پیام">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            `;
+                        }
+                        messagesContainer.appendChild(div);
+                    });
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                })
+                .catch(err => {
+                    console.error('❌ خطا:', err);
+                    messagesContainer.innerHTML = `
+                        <div class="text-center text-danger py-4">
+                            <i class="fas fa-exclamation-triangle fa-3x mb-3 d-block"></i>
+                            <p>خطا در بارگذاری پیام‌ها</p>
+                            <small>${err.message}</small>
+                            <button class="btn btn-outline-glass btn-sm mt-2" onclick="loadChatMessages(${userId})" style="background:transparent;border:1px solid rgba(255,255,255,0.08);color:#e8edf5;border-radius:50px;padding:0.3rem 1rem;">
+                                <i class="fas fa-redo me-1"></i> تلاش مجدد
+                            </button>
+                        </div>
+                    `;
+                });
+            }
+
+            window.sendAdminMessage = function() {
+                const input = document.getElementById('chatInput');
+                const content = input.value.trim();
+                if (!content || !currentChatUserId) return;
+
+                const messagesContainer = document.getElementById('chatMessages');
+                const tempDiv = document.createElement('div');
+                tempDiv.className = 'msg admin-msg';
+                tempDiv.textContent = content + ' (در حال ارسال...)';
+                messagesContainer.appendChild(tempDiv);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                input.value = '';
+
+                fetch('/api/admin/messages/send', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ user_id: currentChatUserId, content: content })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        showToast('خطا در ارسال پیام: ' + data.error, 'danger');
+                        loadChatMessages(currentChatUserId);
+                        return;
+                    }
+                    loadChatMessages(currentChatUserId);
+                })
+                .catch(err => {
+                    console.error('❌ خطا:', err);
+                    showToast('خطا در ارسال پیام: ' + err.message, 'danger');
+                    loadChatMessages(currentChatUserId);
+                });
+            };
+
+            window.deleteMessage = function(messageId) {
+                if (!confirm('آیا از حذف این پیام اطمینان دارید؟')) return;
+                fetch(`/api/admin/messages/delete/${messageId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        showToast('پیام حذف شد', 'success');
+                        loadChatMessages(currentChatUserId);
+                    } else {
+                        showToast('خطا در حذف پیام: ' + (data.error || 'نامشخص'), 'danger');
+                    }
+                })
+                .catch(err => {
+                    console.error('❌ خطا:', err);
+                    showToast('خطا در حذف پیام: ' + err.message, 'danger');
+                });
+            };
+
+            window.sendBroadcast = function() {
+                const input = document.getElementById('broadcast-input');
+                const content = input.value.trim();
+                if (!content) {
+                    showToast('لطفاً متن اعلان را وارد کنید', 'warning');
+                    return;
+                }
+
+                const statusDiv = document.getElementById('broadcast-status');
+                statusDiv.innerHTML = `<div class="text-muted-custom"><div class="loading-spinner" style="display:inline-block;width:16px;height:16px;border:2px solid rgba(108,140,255,0.1);border-radius:50%;border-top-color:#6c8cff;animation:spin 0.8s ease-in-out infinite;"></div> در حال ارسال...</div>`;
+
+                fetch('/api/admin/broadcast', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ content: content })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message || 'اعلان ارسال شد', 'success');
+                        statusDiv.innerHTML = '';
+                        input.value = '';
+                    } else {
+                        showToast('خطا در ارسال اعلان: ' + (data.error || 'نامشخص'), 'danger');
+                        statusDiv.innerHTML = '';
+                    }
+                })
+                .catch(err => {
+                    console.error('❌ خطا:', err);
+                    showToast('خطا در ارسال اعلان: ' + err.message, 'danger');
+                    statusDiv.innerHTML = '';
+                });
+            };
+
+            tbody.addEventListener('click', function(e) {
+                const target = e.target.closest('button');
+                if (!target) return;
+
+                const userId = target.dataset.id;
+                if (!userId) return;
+
+                if (target.classList.contains('toggle-status')) {
+                    e.preventDefault();
+                    toggleUser(userId);
+                } else if (target.classList.contains('delete-user')) {
+                    e.preventDefault();
+                    deleteUser(userId);
+                }
+            });
+
+            document.getElementById('chatModal').addEventListener('hidden.bs.modal', function() {
+                currentChatUserId = null;
+                currentChatUsername = '';
+            });
+
+            document.getElementById('broadcast-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') sendBroadcast();
+            });
+
+            filterTable();
+            showToast('مدیریت سیستم فعال است', 'info');
+
+        })();
+    </script>
+</body>
+</html>
