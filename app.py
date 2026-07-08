@@ -185,7 +185,6 @@ def generate_qr_code(data):
         return base64.b64encode(buffered.getvalue()).decode('utf-8')
     except Exception as e:
         print(f"❌ خطا در تولید QR Code: {e}")
-        # ایجاد QR Code ساده در صورت خطا
         return ""
 
 def allowed_file(filename):
@@ -310,6 +309,9 @@ def get_open_meteo_current(lat, lon):
 def get_weather_by_city(city_name):
     """دریافت آب و هوای شهر با استفاده از Open-Meteo Geocoding + Forecast"""
     try:
+        # حذف فاصله‌های اضافی
+        city_name = city_name.strip()
+        
         # 1. دریافت مختصات شهر
         geo_url = "https://geocoding-api.open-meteo.com/v1/search"
         geo_params = {
@@ -528,6 +530,7 @@ def chat_with_ai(messages):
         return {"error": str(e)}
 
 def search_location(query):
+    """جستجوی مکان با OpenStreetMap Nominatim"""
     url = "https://nominatim.openstreetmap.org/search"
     params = {"q": query, "format": "json", "limit": 20, "accept-language": "fa"}
     headers = {"User-Agent": "WeatherApp/1.0"}
@@ -539,16 +542,27 @@ def search_location(query):
         for item in data:
             display_name = item.get('display_name', '')
             name = item.get('name', '')
-            clean_name = name
+            
+            # اگر name خالی بود، از قسمت اول display_name استفاده کن
+            if not name or name == '':
+                name = display_name.split(',')[0].strip() if display_name else ''
+            
+            # حذف پیشوندهای اضافی از نام
             prefixes = ['شهر', 'استان', 'روستا', 'دهستان', 'بخش', 'شهرستان', 'منطقه']
+            clean_name = name
             for prefix in prefixes:
                 if clean_name.startswith(prefix + ' '):
                     clean_name = clean_name[len(prefix) + 1:]
                     break
-            if not clean_name:
+            
+            # اگر clean_name خالی شد، از name اصلی استفاده کن
+            if not clean_name or clean_name == '':
                 clean_name = name
-            if not clean_name and display_name:
-                clean_name = display_name.split(',')[0]
+            
+            # اگر باز هم خالی بود، از display_name استفاده کن
+            if not clean_name or clean_name == '':
+                clean_name = display_name.split(',')[0].strip() if display_name else 'مکان'
+            
             results.append({
                 'lat': item.get('lat'),
                 'lon': item.get('lon'),
