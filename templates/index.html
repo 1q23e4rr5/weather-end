@@ -1169,7 +1169,7 @@
             }
         }
 
-        // ======================== شهر من ========================
+       // ======================== شهر من ========================
 function searchCity() {
     const input = document.getElementById('mycity-search-input');
     const resultsBox = document.getElementById('mycity-search-results');
@@ -1225,159 +1225,119 @@ function detectLocation() {
         <div class="text-center py-4">
             <div class="loading-spinner"></div>
             <p class="mt-2 text-muted-custom">📍 دریافت موقعیت مکانی...</p>
-            <p class="mt-1 text-muted-custom" style="font-size:0.8rem;">در حال بررسی موقعیت شما...</p>
         </div>
     `;
 
-    // روش اول: استفاده از API بک‌اند (ip-api.com)
-    fetch('/api/detect-location-ip')
+    // روش 1: استفاده از موقعیت‌یابی مرورگر (دقیق‌ترین روش)
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                
+                widget.innerHTML = `
+                    <div class="text-center py-4">
+                        <div class="loading-spinner"></div>
+                        <p class="mt-2 text-muted-custom">📍 دریافت نام شهر از مختصات...</p>
+                    </div>
+                `;
+
+                // دریافت نام شهر از مختصات با استفاده از OpenStreetMap Nominatim
+                fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=fa`)
+                    .then(res => res.json())
+                    .then(data => {
+                        const address = data.address || {};
+                        // پیدا کردن نام شهر با اولویت‌بندی
+                        let city = address.city || 
+                                  address.town || 
+                                  address.village || 
+                                  address.municipality || 
+                                  address.county || 
+                                  address.state_district ||
+                                  address.state ||
+                                  address.region;
+                        
+                        // اگر هیچکدام پیدا نشد، از قسمت اول display_name استفاده کن
+                        if (!city && data.display_name) {
+                            const parts = data.display_name.split(',');
+                            city = parts[0]?.trim() || '';
+                        }
+                        
+                        if (city && city !== '') {
+                            currentCity = city;
+                            document.getElementById('mycity-search-input').value = city;
+                            getWeatherForCity(city);
+                        } else {
+                            // اگر شهر پیدا نشد، از روش دوم استفاده کن
+                            fallbackDetectLocation();
+                        }
+                    })
+                    .catch(() => {
+                        // اگر API خطا داد، از روش دوم استفاده کن
+                        fallbackDetectLocation();
+                    });
+            },
+            function(error) {
+                console.error('خطا در موقعیت‌یابی:', error);
+                // اگر موقعیت‌یابی مرورگر خطا داد، از روش دوم استفاده کن
+                fallbackDetectLocation();
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 60000
+            }
+        );
+    } else {
+        // اگر مرورگر از موقعیت‌یابی پشتیبانی نمی‌کند، از روش دوم استفاده کن
+        fallbackDetectLocation();
+    }
+}
+
+// روش دوم: استفاده از IP برای تشخیص موقعیت
+function fallbackDetectLocation() {
+    const widget = document.getElementById('weatherWidget');
+    widget.innerHTML = `
+        <div class="text-center py-4">
+            <div class="loading-spinner"></div>
+            <p class="mt-2 text-muted-custom">📍 تشخیص موقعیت از طریق IP...</p>
+        </div>
+    `;
+
+    // استفاده از ip-api.com برای تشخیص موقعیت از روی IP
+    fetch('http://ip-api.com/json/')
         .then(res => res.json())
         .then(data => {
-            if (data.city && data.city !== '' && data.city !== 'undefined' && data.city !== null) {
+            if (data.status === 'success' && data.city) {
                 currentCity = data.city;
                 document.getElementById('mycity-search-input').value = data.city;
                 getWeatherForCity(data.city);
             } else {
-                // اگر API بک‌اند موفق نشد، از موقعیت‌یابی مرورگر استفاده کن
-                useBrowserGeolocation();
+                // اگر باز هم موفق نشد، از کاربر بخواهید شهر را وارد کند
+                widget.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="fas fa-map-marker-alt fa-4x mb-3 d-block text-warning opacity-50"></i>
+                        <p class="text-muted-custom">نتیجه‌ای یافت نشد. لطفاً شهر خود را جستجو کنید.</p>
+                        <div class="search-container" style="max-width:400px;margin:0 auto;">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" id="fallback-search-input" placeholder="🔍 نام شهر را وارد کنید..." autocomplete="off">
+                            <button class="search-btn" onclick="fallbackSearch()">
+                                <i class="fas fa-arrow-left"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('fallback-search-input')?.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') fallbackSearch();
+                });
             }
         })
         .catch(() => {
-            // اگر API بک‌اند خطا داد، از موقعیت‌یابی مرورگر استفاده کن
-            useBrowserGeolocation();
-        });
-}
-
-function useBrowserGeolocation() {
-    const widget = document.getElementById('weatherWidget');
-    
-    // بررسی اینکه مرورگر از موقعیت‌یابی پشتیبانی می‌کند
-    if (!navigator.geolocation) {
-        widget.innerHTML = `
-            <div class="text-center py-4">
-                <i class="fas fa-exclamation-triangle fa-4x mb-3 d-block text-warning opacity-50"></i>
-                <p class="text-muted-custom">مرورگر شما از موقعیت‌یابی پشتیبانی نمی‌کند.</p>
-                <p class="text-muted-custom small">لطفاً شهر خود را در کادر جستجو وارد کنید.</p>
-                <div class="search-container" style="max-width:400px;margin:10px auto;">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="fallback-search-input" placeholder="🔍 نام شهر را وارد کنید..." autocomplete="off">
-                    <button class="search-btn" onclick="fallbackSearch()">
-                        <i class="fas fa-arrow-left"></i>
-                    </button>
-                </div>
-            </div>
-        `;
-        document.getElementById('fallback-search-input')?.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') fallbackSearch();
-        });
-        return;
-    }
-
-    widget.innerHTML = `
-        <div class="text-center py-4">
-            <div class="loading-spinner"></div>
-            <p class="mt-2 text-muted-custom">📍 درخواست دسترسی به موقعیت...</p>
-            <p class="mt-1 text-muted-custom" style="font-size:0.8rem;">لطفاً دسترسی به موقعیت را در مرورگر خود مجاز کنید</p>
-        </div>
-    `;
-
-    // دریافت موقعیت با دقت بالا
-    navigator.geolocation.getCurrentPosition(
-        function(position) {
-            const lat = position.coords.latitude;
-            const lon = position.coords.longitude;
-            
-            widget.innerHTML = `
-                <div class="text-center py-4">
-                    <div class="loading-spinner"></div>
-                    <p class="mt-2 text-muted-custom">📍 موقعیت دریافت شد (${lat.toFixed(4)}, ${lon.toFixed(4)})</p>
-                    <p class="mt-1 text-muted-custom" style="font-size:0.8rem;">در حال دریافت نام شهر...</p>
-                </div>
-            `;
-
-            // دریافت نام شهر از مختصات با استفاده از Nominatim
-            fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=fa&zoom=10`)
-                .then(res => res.json())
-                .then(data => {
-                    const address = data.address || {};
-                    // اولویت: city > town > village > municipality > county
-                    let city = address.city || address.town || address.village || address.municipality || address.county || '';
-                    
-                    // اگر شهر پیدا نشد، از state یا region استفاده کن
-                    if (!city) {
-                        city = address.state || address.region || address.province || '';
-                    }
-                    
-                    // اگر باز هم پیدا نشد، از display_name استفاده کن
-                    if (!city && data.display_name) {
-                        const parts = data.display_name.split(',');
-                        if (parts.length > 0) {
-                            city = parts[0].trim();
-                        }
-                    }
-                    
-                    if (city && city !== '') {
-                        currentCity = city;
-                        document.getElementById('mycity-search-input').value = city;
-                        getWeatherForCity(city);
-                    } else {
-                        // اگر نام شهر پیدا نشد، از کاربر بخواه وارد کند
-                        widget.innerHTML = `
-                            <div class="text-center py-4">
-                                <i class="fas fa-map-marker-alt fa-4x mb-3 d-block text-warning opacity-50"></i>
-                                <p class="text-muted-custom">موقعیت شما پیدا شد اما نام شهر مشخص نیست.</p>
-                                <p class="text-muted-custom small">لطفاً شهر خود را در کادر جستجو وارد کنید.</p>
-                                <div class="search-container" style="max-width:400px;margin:10px auto;">
-                                    <i class="fas fa-search search-icon"></i>
-                                    <input type="text" id="fallback-search-input" placeholder="🔍 نام شهر را وارد کنید..." autocomplete="off">
-                                    <button class="search-btn" onclick="fallbackSearch()">
-                                        <i class="fas fa-arrow-left"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        `;
-                        document.getElementById('fallback-search-input')?.addEventListener('keypress', function(e) {
-                            if (e.key === 'Enter') fallbackSearch();
-                        });
-                    }
-                })
-                .catch((err) => {
-                    console.error('خطا در دریافت نام شهر:', err);
-                    widget.innerHTML = `
-                        <div class="text-center py-4">
-                            <i class="fas fa-map-marker-alt fa-4x mb-3 d-block text-warning opacity-50"></i>
-                            <p class="text-muted-custom">موقعیت شما پیدا شد اما نام شهر مشخص نیست.</p>
-                            <p class="text-muted-custom small">لطفاً شهر خود را در کادر جستجو وارد کنید.</p>
-                            <div class="search-container" style="max-width:400px;margin:10px auto;">
-                                <i class="fas fa-search search-icon"></i>
-                                <input type="text" id="fallback-search-input" placeholder="🔍 نام شهر را وارد کنید..." autocomplete="off">
-                                <button class="search-btn" onclick="fallbackSearch()">
-                                    <i class="fas fa-arrow-left"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                    document.getElementById('fallback-search-input')?.addEventListener('keypress', function(e) {
-                        if (e.key === 'Enter') fallbackSearch();
-                    });
-                });
-        },
-        function(error) {
-            console.error('خطا در موقعیت‌یابی مرورگر:', error);
-            
-            let errorMessage = 'دسترسی به موقعیت شما مجاز نیست.';
-            if (error.code === error.TIMEOUT) {
-                errorMessage = 'دریافت موقعیت زمانبر شد.';
-            } else if (error.code === error.POSITION_UNAVAILABLE) {
-                errorMessage = 'موقعیت شما در دسترس نیست.';
-            }
-            
             widget.innerHTML = `
                 <div class="text-center py-4">
                     <i class="fas fa-map-marker-alt fa-4x mb-3 d-block text-warning opacity-50"></i>
-                    <p class="text-muted-custom">${errorMessage}</p>
-                    <p class="text-muted-custom small">لطفاً شهر خود را در کادر جستجو وارد کنید یا موقعیت مکانی را در مرورگر خود فعال کنید.</p>
-                    <div class="search-container" style="max-width:400px;margin:10px auto;">
+                    <p class="text-muted-custom">نتیجه‌ای یافت نشد. لطفاً شهر خود را جستجو کنید.</p>
+                    <div class="search-container" style="max-width:400px;margin:0 auto;">
                         <i class="fas fa-search search-icon"></i>
                         <input type="text" id="fallback-search-input" placeholder="🔍 نام شهر را وارد کنید..." autocomplete="off">
                         <button class="search-btn" onclick="fallbackSearch()">
@@ -1389,13 +1349,7 @@ function useBrowserGeolocation() {
             document.getElementById('fallback-search-input')?.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') fallbackSearch();
             });
-        },
-        {
-            enableHighAccuracy: true,
-            timeout: 15000,
-            maximumAge: 60000
-        }
-    );
+        });
 }
 
 function fallbackSearch() {
