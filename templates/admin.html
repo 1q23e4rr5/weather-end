@@ -281,6 +281,41 @@
             background: rgba(239, 68, 68, 0.2);
             color: #f87171;
         }
+        .txid-code {
+            color: #93c5fd;
+            font-size: 0.7rem;
+            word-break: break-all;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            display: inline-block;
+            max-width: 200px;
+            font-family: monospace;
+        }
+        .btn-txid-copy {
+            background: rgba(108, 140, 255, 0.08);
+            color: #6c8cff;
+            border: none;
+            border-radius: 6px;
+            padding: 0.1rem 0.4rem;
+            font-size: 0.6rem;
+            transition: all 0.3s ease;
+        }
+        .btn-txid-copy:hover {
+            background: rgba(108, 140, 255, 0.15);
+            color: #93c5fd;
+        }
+        .btn-txid-scan {
+            color: #fbbf24;
+            font-size: 0.6rem;
+            text-decoration: none;
+            margin-right: 4px;
+            transition: all 0.3s ease;
+        }
+        .btn-txid-scan:hover {
+            color: #ffd700;
+            text-decoration: none;
+        }
 
         .users-card {
             background: var(--card-bg);
@@ -650,6 +685,40 @@
             color: var(--text-secondary);
         }
 
+        /* ===== Modal جزئیات سفارش ===== */
+        .order-detail-modal .modal-content {
+            background: #141a2e;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            color: var(--text-primary);
+        }
+        .order-detail-modal .modal-header {
+            border-bottom: 1px solid var(--border-color);
+        }
+        .order-detail-modal .modal-header .btn-close {
+            filter: invert(1) brightness(200%);
+        }
+        .order-detail-modal .modal-footer {
+            border-top: 1px solid var(--border-color);
+        }
+        .order-detail-modal .detail-row {
+            display: flex;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+        }
+        .order-detail-modal .detail-label {
+            width: 40%;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+        .order-detail-modal .detail-value {
+            width: 60%;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            word-break: break-all;
+        }
+
         @media (max-width: 768px) {
             .admin-header { padding: 1rem; flex-direction: column; align-items: stretch; }
             .admin-title h1 { font-size: 1.2rem; }
@@ -661,10 +730,12 @@
             .filter-group { justify-content: center; }
             .broadcast-section { padding: 1rem; }
             .orders-section .card-header { flex-direction: column; align-items: stretch; }
+            .txid-code { max-width: 120px; font-size: 0.6rem; }
         }
         @media (max-width: 480px) {
             .stats-grid { grid-template-columns: 1fr; }
             .admin-title .icon-wrapper { width: 40px; height: 40px; font-size: 1.2rem; }
+            .txid-code { max-width: 80px; font-size: 0.55rem; }
         }
     </style>
 </head>
@@ -767,7 +838,7 @@
             <div id="broadcast-status" class="mt-2"></div>
         </div>
 
-        <!-- ===== سفارشات ===== -->
+        <!-- ===== سفارشات با نمایش TXID ===== -->
         <div class="orders-section">
             <div class="card-header">
                 <h5><i class="fas fa-shopping-cart me-2"></i>سفارشات پرداخت</h5>
@@ -784,6 +855,7 @@
                             <th>کاربر</th>
                             <th>مبلغ</th>
                             <th>طرح</th>
+                            <th>کد تراکنش (TXID)</th>
                             <th>وضعیت</th>
                             <th>تاریخ</th>
                             <th>عملیات</th>
@@ -804,6 +876,24 @@
                                 <span class="account-badge account-{{ order.account_type }}">
                                     {{ {'basic':'ساده','premium':'پریمیوم','vip':'VIP'}.get(order.account_type, 'نامشخص') }}
                                 </span>
+                            </td>
+                            <td>
+                                {% if order.txid %}
+                                    <code class="txid-code">{{ order.txid[:20] }}...</code>
+                                    <div style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;">
+                                        <button class="btn-txid-copy" onclick="copyToClipboard('{{ order.txid }}')" title="کپی کامل TXID">
+                                            <i class="fas fa-copy"></i> کپی
+                                        </button>
+                                        <a href="https://bscscan.com/tx/{{ order.txid }}" target="_blank" class="btn-txid-scan" title="مشاهده در BSCScan">
+                                            <i class="fas fa-external-link-alt"></i> اسکن
+                                        </a>
+                                        <button class="btn-txid-copy" onclick="showTxidFull('{{ order.txid }}')" title="مشاهده کامل TXID" style="background:rgba(251,191,36,0.08);color:#fbbf24;">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted-custom" style="font-size:0.7rem;">—</span>
+                                {% endif %}
                             </td>
                             <td>
                                 <span class="order-status {{ order.status }}">
@@ -830,14 +920,107 @@
                                         <i class="fas fa-times"></i> رد
                                     </button>
                                 </form>
+                                <button class="btn btn-sm" style="background:rgba(108,140,255,0.08);color:#6c8cff;border:none;border-radius:8px;padding:0.2rem 0.6rem;margin-top:4px;" 
+                                        data-bs-toggle="modal" data-bs-target="#orderDetailModal{{ order.id }}" title="مشاهده جزئیات">
+                                    <i class="fas fa-eye"></i>
+                                </button>
                                 {% else %}
                                 <span class="text-muted-custom" style="font-size:0.7rem;">انجام شده</span>
+                                <button class="btn btn-sm" style="background:rgba(108,140,255,0.08);color:#6c8cff;border:none;border-radius:8px;padding:0.2rem 0.6rem;margin-top:4px;" 
+                                        data-bs-toggle="modal" data-bs-target="#orderDetailModal{{ order.id }}" title="مشاهده جزئیات">
+                                    <i class="fas fa-eye"></i>
+                                </button>
                                 {% endif %}
                             </td>
                         </tr>
+
+                        <!-- ===== مودال جزئیات سفارش ===== -->
+                        <div class="modal fade order-detail-modal" id="orderDetailModal{{ order.id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">
+                                            <i class="fas fa-shopping-cart me-2" style="color:#fbbf24;"></i>
+                                            جزئیات سفارش
+                                        </h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="detail-row">
+                                            <span class="detail-label">کد سفارش</span>
+                                            <span class="detail-value"><code style="color:#e8edf5;">{{ order.order_id }}</code></span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">کاربر</span>
+                                            <span class="detail-value">{{ order.user.username }}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">ایمیل کاربر</span>
+                                            <span class="detail-value">{{ order.user.email }}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">مبلغ</span>
+                                            <span class="detail-value" style="color:#ffd700;font-weight:700;">{{ order.amount_usdt }} USDT</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">طرح</span>
+                                            <span class="detail-value">
+                                                <span class="account-badge account-{{ order.account_type }}">
+                                                    {{ {'basic':'ساده','premium':'پریمیوم','vip':'VIP'}.get(order.account_type, 'نامشخص') }}
+                                                </span>
+                                            </span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">وضعیت</span>
+                                            <span class="detail-value">
+                                                <span class="order-status {{ order.status }}">
+                                                    {% if order.status == 'pending' %}⏳ در انتظار تایید
+                                                    {% elif order.status == 'paid' %}✅ تایید شده
+                                                    {% elif order.status == 'rejected' %}❌ رد شده
+                                                    {% else %}{{ order.status }}{% endif %}
+                                                </span>
+                                            </span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">تاریخ ثبت</span>
+                                            <span class="detail-value">{{ order.created_at.strftime('%Y-%m-%d %H:%M') if order.created_at else '-' }}</span>
+                                        </div>
+                                        <div class="detail-row" style="border-bottom: none;">
+                                            <span class="detail-label">کد تراکنش (TXID)</span>
+                                            <span class="detail-value">
+                                                {% if order.txid %}
+                                                    <code style="color:#93c5fd;font-size:0.75rem;word-break:break-all;display:block;background:rgba(255,255,255,0.03);padding:0.5rem;border-radius:6px;margin-bottom:8px;">
+                                                        {{ order.txid }}
+                                                    </code>
+                                                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                                        <button class="btn btn-sm" style="background:rgba(108,140,255,0.15);color:#6c8cff;border:none;border-radius:6px;padding:0.3rem 0.8rem;" 
+                                                                onclick="copyToClipboard('{{ order.txid }}')">
+                                                            <i class="fas fa-copy me-1"></i> کپی TXID
+                                                        </button>
+                                                        <a href="https://bscscan.com/tx/{{ order.txid }}" target="_blank" 
+                                                           class="btn btn-sm" style="background:rgba(251,191,36,0.15);color:#fbbf24;border:none;border-radius:6px;padding:0.3rem 0.8rem;text-decoration:none;">
+                                                            <i class="fas fa-external-link-alt me-1"></i> مشاهده در BSCScan
+                                                        </a>
+                                                    </div>
+                                                {% else %}
+                                                    <span class="text-muted-custom">—</span>
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-glass" data-bs-dismiss="modal">
+                                            <i class="fas fa-times me-1"></i> بستن
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- ===== پایان مودال ===== -->
+
                         {% else %}
                         <tr>
-                            <td colspan="7">
+                            <td colspan="8">
                                 <div class="empty-state">
                                     <i class="fas fa-shopping-cart"></i>
                                     <div>هیچ سفارشی یافت نشد</div>
@@ -1068,6 +1251,43 @@
                     if (toast.parentNode) toast.remove();
                 }, 4000);
             }
+
+            // ===== کپی کردن TXID =====
+            window.copyToClipboard = function(text) {
+                if (!text) return;
+                
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(() => {
+                        showToast('✅ کد تراکنش کپی شد!', 'success');
+                    }).catch(() => {
+                        fallbackCopy(text);
+                    });
+                } else {
+                    fallbackCopy(text);
+                }
+            };
+
+            function fallbackCopy(text) {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    showToast('✅ کد تراکنش کپی شد!', 'success');
+                } catch (err) {
+                    showToast('❌ خطا در کپی کردن', 'danger');
+                }
+                document.body.removeChild(textarea);
+            }
+
+            // ===== نمایش کامل TXID =====
+            window.showTxidFull = function(txid) {
+                if (!txid) return;
+                showToast('📋 TXID: ' + txid, 'info');
+            };
 
             let currentFilter = 'all';
             let searchQuery = '';
@@ -1409,5 +1629,6 @@
 
         })();
     </script>
+
 </body>
 </html>
