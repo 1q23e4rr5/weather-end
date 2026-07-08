@@ -1694,19 +1694,72 @@ def api_weather_news():
 @app.route('/api/detect-location-ip')
 @login_required
 def api_detect_location_ip():
+    """تشخیص موقعیت مکانی با استفاده از چند سرویس مختلف برای دقت بالاتر"""
     try:
+        # ابتدا از ip-api.com استفاده می‌کنیم
         response = requests.get('http://ip-api.com/json/', timeout=5)
         if response.status_code == 200:
             data = response.json()
             if data.get('status') == 'success':
-                return jsonify({
-                    'city': data.get('city', ''),
-                    'country': data.get('country', ''),
-                    'lat': data.get('lat'),
-                    'lon': data.get('lon')
-                })
-        return jsonify({'error': 'موقعیت یافت نشد'}), 404
+                city = data.get('city', '')
+                country = data.get('country', '')
+                lat = data.get('lat')
+                lon = data.get('lon')
+                
+                # اگر شهر پیدا شد، آن را برمی‌گردانیم
+                if city and city != '':
+                    return jsonify({
+                        'city': city,
+                        'country': country,
+                        'lat': lat,
+                        'lon': lon,
+                        'source': 'ip-api'
+                    })
+        
+        # اگر ip-api موفق نبود، از ipinfo.io استفاده می‌کنیم
+        try:
+            response = requests.get('https://ipinfo.io/json', timeout=5)
+            if response.status_code == 200:
+                data = response.json()
+                city = data.get('city', '')
+                country = data.get('country', '')
+                loc = data.get('loc', '').split(',')
+                if len(loc) == 2 and city:
+                    return jsonify({
+                        'city': city,
+                        'country': country,
+                        'lat': float(loc[0]),
+                        'lon': float(loc[1]),
+                        'source': 'ipinfo'
+                    })
+        except:
+            pass
+        
+        # اگر هیچکدام موفق نشد، از geoplugin استفاده می‌کنیم
+        try:
+            response = requests.get('http://www.geoplugin.net/json.gp', timeout=5)
+            if response.status_code == 200:
+                data = response.json()
+                city = data.get('geoplugin_city', '')
+                country = data.get('geoplugin_countryName', '')
+                lat = data.get('geoplugin_latitude')
+                lon = data.get('geoplugin_longitude')
+                if city and lat and lon:
+                    return jsonify({
+                        'city': city,
+                        'country': country,
+                        'lat': float(lat),
+                        'lon': float(lon),
+                        'source': 'geoplugin'
+                    })
+        except:
+            pass
+        
+        # در نهایت اگر هیچ موقعیتی پیدا نشد، خطا برمی‌گردانیم
+        return jsonify({'error': 'موقعیت یافت نشد. لطفاً شهر خود را دستی جستجو کنید.'}), 404
+        
     except Exception as e:
+        print(f"❌ خطا در تشخیص موقعیت: {e}")
         return jsonify({'error': str(e)}), 500
 
 # ======================== قیمت‌ها و خرید ========================
