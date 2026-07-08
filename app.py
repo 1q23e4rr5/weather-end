@@ -895,6 +895,32 @@ def logout():
     return redirect(url_for('login'))
 
 # ======================== پنل ادمین ========================
+@app.route('/admin/order/<int:order_id>/status', methods=['POST'])
+@login_required
+@admin_required
+def admin_order_status(order_id):
+    try:
+        order = Order.query.get_or_404(order_id)
+        status = request.form.get('status')
+        
+        if status in ['paid', 'rejected']:
+            order.status = status
+            if status == 'paid':
+                order.paid_at = datetime.utcnow()
+                user = User.query.get(order.user_id)
+                if user:
+                    user.account_type = order.account_type
+                    db.session.commit()
+                    flash(f'اشتراک برای کاربر {user.username} فعال شد', 'success')
+            db.session.commit()
+            flash(f'وضعیت سفارش به {status} تغییر کرد', 'success')
+        
+        return redirect(url_for('admin'))
+    except Exception as e:
+        flash(f'خطا: {str(e)}', 'danger')
+        return redirect(url_for('admin'))
+
+
 @app.route('/admin')
 @login_required
 @admin_required
