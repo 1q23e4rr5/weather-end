@@ -47,9 +47,9 @@ csrf = CSRFProtect(app)
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 # ======================== تنظیمات OAuth گوگل ========================
-GOOGLE_CLIENT_ID = '513836943914-mjv4u40c1iast1ds1pu35ml2nk6m208p.apps.googleusercontent.com'
-GOOGLE_CLIENT_SECRET = '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'
-GOOGLE_REDIRECT_URI = 'https://weather-4000.onrender.com/google/callback'
+GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
+GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET')
+GOOGLE_REDIRECT_URI = os.environ.get('GOOGLE_REDIRECT_URI', 'https://weather-4000.onrender.com/google/callback')
 GOOGLE_AUTHORIZATION_URL = 'https://accounts.google.com/o/oauth2/auth'
 GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
 GOOGLE_USERINFO_URL = 'https://www.googleapis.com/oauth2/v2/userinfo'
