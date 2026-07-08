@@ -951,44 +951,44 @@
                 </div>
             </div>
 
-           <!-- ======================== شهر من ======================== -->
-<div class="tab-pane fade" id="mycity">
-    <div class="row mt-3">
-        <div class="col-lg-12">
-            <div class="card">
-                <div class="card-header-custom">
-                    <i class="fas fa-city me-2"></i>آب و هوای شهر من - Open-Meteo
-                </div>
-                <div class="card-body">
-                    <div class="city-search-section">
-                        <div class="row g-2 align-items-center">
-                            <div class="col-md-12">
-                                <div class="search-container" id="mycity-search-container">
-                                    <i class="fas fa-search search-icon"></i>
-                                    <input type="text" id="mycity-search-input" 
-                                           placeholder="🔍 جستجوی شهر (فارسی یا انگلیسی)..." 
-                                           autocomplete="off">
-                                    <button class="search-btn" onclick="searchCity()">
-                                        <i class="fas fa-arrow-left"></i>
-                                    </button>
-                                    <div class="search-results-box" id="mycity-search-results"></div>
-                                </div>
+            <!-- ======================== شهر من ======================== -->
+            <div class="tab-pane fade" id="mycity">
+                <div class="row mt-3">
+                    <div class="col-lg-12">
+                        <div class="card">
+                            <div class="card-header-custom">
+                                <i class="fas fa-city me-2"></i>آب و هوای شهر من - Open-Meteo
                             </div>
-                        </div>
-                    </div>
-                    <div id="weather-display">
-                        <div class="weather-widget" id="weatherWidget">
-                            <div class="text-center py-4 text-muted-custom">
-                                <i class="fas fa-cloud-sun fa-4x mb-3 d-block opacity-50"></i>
-                                <p>لطفاً یک شهر جستجو کنید</p>
+                            <div class="card-body">
+                                <div class="city-search-section">
+                                    <div class="row g-2 align-items-center">
+                                        <div class="col-md-12">
+                                            <div class="search-container" id="mycity-search-container">
+                                                <i class="fas fa-search search-icon"></i>
+                                                <input type="text" id="mycity-search-input" 
+                                                       placeholder="🔍 جستجوی شهر (فارسی یا انگلیسی)..." 
+                                                       autocomplete="off">
+                                                <button class="search-btn" onclick="searchCity()">
+                                                    <i class="fas fa-arrow-left"></i>
+                                                </button>
+                                                <div class="search-results-box" id="mycity-search-results"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="weather-display">
+                                    <div class="weather-widget" id="weatherWidget">
+                                        <div class="text-center py-4 text-muted-custom">
+                                            <i class="fas fa-cloud-sun fa-4x mb-3 d-block opacity-50"></i>
+                                            <p>لطفاً یک شهر جستجو کنید</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
 
             <!-- ======================== پیام به ادمین ======================== -->
             <div class="tab-pane fade" id="messages">
@@ -1161,166 +1161,166 @@
             }
         }
 
-       // ======================== شهر من ========================
-function searchCity() {
-    const input = document.getElementById('mycity-search-input');
-    const resultsBox = document.getElementById('mycity-search-results');
-    const query = input.value.trim();
-    
-    if (query.length < 2) {
-        resultsBox.style.display = 'none';
-        return;
-    }
-    
-    resultsBox.innerHTML = '<div class="result-item"><span class="text-muted-custom">⏳ جستجو...</span></div>';
-    resultsBox.style.display = 'block';
-    
-    clearTimeout(searchTimeout['mycity']);
-    searchTimeout['mycity'] = setTimeout(() => {
-        fetch(`/api/search?q=${encodeURIComponent(query)}`)
-            .then(res => res.json())
-            .then(data => {
-                resultsBox.innerHTML = '';
-                if (!data || !data.length) {
-                    resultsBox.innerHTML = '<div class="result-item"><span class="text-muted-custom">نتیجه‌ای یافت نشد</span></div>';
-                    return;
-                }
-                data.forEach(item => {
-                    const row = document.createElement('div');
-                    row.className = 'result-item';
-                    const cityName = item.name || item.display_name?.split(',')[0] || 'مکان';
-                    row.innerHTML = `
-                        <i class="fas fa-city result-icon"></i>
-                        <div>
-                            <div class="result-name">${cityName}</div>
-                            <div class="result-detail">${item.display_name || ''}</div>
-                        </div>
-                    `;
-                    row.onclick = function() {
-                        resultsBox.style.display = 'none';
-                        input.value = cityName;
-                        currentCity = cityName;
-                        getWeatherForCity(cityName);
-                    };
-                    resultsBox.appendChild(row);
-                });
-            })
-            .catch(() => {
-                resultsBox.innerHTML = '<div class="result-item"><span class="text-danger">❌ خطا در جستجو</span></div>';
-            });
-    }, 500);
-}
+        // ======================== شهر من ========================
+        function searchCity() {
+            const input = document.getElementById('mycity-search-input');
+            const resultsBox = document.getElementById('mycity-search-results');
+            const query = input.value.trim();
+            
+            if (query.length < 2) {
+                resultsBox.style.display = 'none';
+                return;
+            }
+            
+            resultsBox.innerHTML = '<div class="result-item"><span class="text-muted-custom">⏳ جستجو...</span></div>';
+            resultsBox.style.display = 'block';
+            
+            clearTimeout(searchTimeout['mycity']);
+            searchTimeout['mycity'] = setTimeout(() => {
+                fetch(`/api/search?q=${encodeURIComponent(query)}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        resultsBox.innerHTML = '';
+                        if (!data || !data.length) {
+                            resultsBox.innerHTML = '<div class="result-item"><span class="text-muted-custom">نتیجه‌ای یافت نشد</span></div>';
+                            return;
+                        }
+                        data.forEach(item => {
+                            const row = document.createElement('div');
+                            row.className = 'result-item';
+                            const cityName = item.name || item.display_name?.split(',')[0] || 'مکان';
+                            row.innerHTML = `
+                                <i class="fas fa-city result-icon"></i>
+                                <div>
+                                    <div class="result-name">${cityName}</div>
+                                    <div class="result-detail">${item.display_name || ''}</div>
+                                </div>
+                            `;
+                            row.onclick = function() {
+                                resultsBox.style.display = 'none';
+                                input.value = cityName;
+                                currentCity = cityName;
+                                getWeatherForCity(cityName);
+                            };
+                            resultsBox.appendChild(row);
+                        });
+                    })
+                    .catch(() => {
+                        resultsBox.innerHTML = '<div class="result-item"><span class="text-danger">❌ خطا در جستجو</span></div>';
+                    });
+            }, 500);
+        }
 
-function getWeatherForCity(city) {
-    const widget = document.getElementById('weatherWidget');
-    widget.innerHTML = `
-        <div class="text-center py-4">
-            <div class="loading-spinner"></div>
-            <p class="mt-2 text-muted-custom">⏳ دریافت اطلاعات آب و هوای ${city}...</p>
-        </div>
-    `;
-
-    fetch('/api/my-city/weather', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ city: city })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.error) {
+        function getWeatherForCity(city) {
+            const widget = document.getElementById('weatherWidget');
             widget.innerHTML = `
                 <div class="text-center py-4">
-                    <i class="fas fa-exclamation-triangle fa-4x mb-3 d-block text-danger opacity-50"></i>
-                    <p class="text-muted-custom">${data.error}</p>
-                    <small class="text-muted-custom">لطفاً نام شهر را به فارسی یا انگلیسی صحیح وارد کنید</small>
+                    <div class="loading-spinner"></div>
+                    <p class="mt-2 text-muted-custom">⏳ دریافت اطلاعات آب و هوای "${city}"...</p>
                 </div>
             `;
-            return;
-        }
 
-        const temp = data.temperature || '--';
-        const humidity = data.humidity || '--';
-        const condition = data.condition || 'نامشخص';
-        const pressure = data.pressure || '--';
-        const visibility = data.visibility || '--';
-        const wind_speed = data.wind_speed || '--';
-        const precipitation = data.precipitation || 0;
+            fetch('/api/my-city/weather', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ city: city })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    widget.innerHTML = `
+                        <div class="text-center py-4">
+                            <i class="fas fa-exclamation-triangle fa-4x mb-3 d-block text-danger opacity-50"></i>
+                            <p class="text-muted-custom">${data.error}</p>
+                            <small class="text-muted-custom">لطفاً نام شهر را به فارسی یا انگلیسی صحیح وارد کنید</small>
+                        </div>
+                    `;
+                    return;
+                }
 
-        let iconClass = 'fa-cloud-sun';
-        let iconColor = 'partly-cloudy';
-        const condLower = condition.toLowerCase();
-        if (condLower.includes('آفتابی') || condLower.includes('صاف')) {
-            iconClass = 'fa-sun';
-            iconColor = 'sunny';
-        } else if (condLower.includes('ابری') || condLower.includes('ابر')) {
-            iconClass = 'fa-cloud';
-            iconColor = 'cloudy';
-        } else if (condLower.includes('بارانی') || condLower.includes('باران')) {
-            iconClass = 'fa-cloud-rain';
-            iconColor = 'rainy';
-        } else if (condLower.includes('برف')) {
-            iconClass = 'fa-snowflake';
-            iconColor = 'rainy';
-        }
+                const temp = data.temperature || '--';
+                const humidity = data.humidity || '--';
+                const condition = data.condition || 'نامشخص';
+                const pressure = data.pressure || '--';
+                const visibility = data.visibility || '--';
+                const wind_speed = data.wind_speed || '--';
+                const precipitation = data.precipitation || 0;
 
-        let forecastHtml = '';
-        if (data.forecast && data.forecast.length > 0) {
-            forecastHtml = `
-                <div style="margin-top:20px;">
-                    <h6 style="color:#e8edf5;">پیش‌بینی ۷ روزه</h6>
-                    <div style="display:flex;overflow-x:auto;gap:10px;padding:10px 0;">
-                        ${data.forecast.map(day => `
-                            <div style="background:rgba(255,255,255,0.03);border-radius:12px;padding:10px;min-width:100px;text-align:center;border:1px solid rgba(255,255,255,0.03);">
-                                <div style="font-size:0.7rem;color:#8a9bb0;">${day.date || ''}</div>
-                                <div style="font-size:0.9rem;color:#e8edf5;font-weight:600;">${day.temp_max || '-'}°</div>
-                                <div style="font-size:0.8rem;color:#8a9bb0;">${day.temp_min || '-'}°</div>
-                                <div style="font-size:0.7rem;color:#8a9bb0;">💧 ${day.precipitation || 0}mm</div>
+                let iconClass = 'fa-cloud-sun';
+                let iconColor = 'partly-cloudy';
+                const condLower = condition.toLowerCase();
+                if (condLower.includes('آفتابی') || condLower.includes('صاف')) {
+                    iconClass = 'fa-sun';
+                    iconColor = 'sunny';
+                } else if (condLower.includes('ابری') || condLower.includes('ابر')) {
+                    iconClass = 'fa-cloud';
+                    iconColor = 'cloudy';
+                } else if (condLower.includes('بارانی') || condLower.includes('باران')) {
+                    iconClass = 'fa-cloud-rain';
+                    iconColor = 'rainy';
+                } else if (condLower.includes('برف')) {
+                    iconClass = 'fa-snowflake';
+                    iconColor = 'rainy';
+                }
+
+                let forecastHtml = '';
+                if (data.forecast && data.forecast.length > 0) {
+                    forecastHtml = `
+                        <div style="margin-top:20px;">
+                            <h6 style="color:#e8edf5;">پیش‌بینی ۷ روزه</h6>
+                            <div style="display:flex;overflow-x:auto;gap:10px;padding:10px 0;">
+                                ${data.forecast.map(day => `
+                                    <div style="background:rgba(255,255,255,0.03);border-radius:12px;padding:10px;min-width:100px;text-align:center;border:1px solid rgba(255,255,255,0.03);">
+                                        <div style="font-size:0.7rem;color:#8a9bb0;">${day.date || ''}</div>
+                                        <div style="font-size:0.9rem;color:#e8edf5;font-weight:600;">${day.temp_max || '-'}°</div>
+                                        <div style="font-size:0.8rem;color:#8a9bb0;">${day.temp_min || '-'}°</div>
+                                        <div style="font-size:0.7rem;color:#8a9bb0;">💧 ${day.precipitation || 0}mm</div>
+                                    </div>
+                                `).join('')}
                             </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        }
+                        </div>
+                    `;
+                }
 
-        widget.innerHTML = `
-            <div class="weather-widget">
-                <i class="fas ${iconClass} weather-icon ${iconColor}"></i>
-                <div class="temp">${temp}<sup>°C</sup></div>
-                <div class="condition">${condition}</div>
-                <div style="font-size:0.9rem;color:#a0b4c8;margin-top:4px;">${data.city || city}</div>
-                <div style="font-size:0.7rem;color:#6a7a8f;margin-top:2px;">منبع: Open-Meteo</div>
-                <div class="details">
-                    <div class="detail-item">
-                        <div class="label">رطوبت</div>
-                        <div class="value">${humidity}%</div>
+                widget.innerHTML = `
+                    <div class="weather-widget">
+                        <i class="fas ${iconClass} weather-icon ${iconColor}"></i>
+                        <div class="temp">${temp}<sup>°C</sup></div>
+                        <div class="condition">${condition}</div>
+                        <div style="font-size:0.9rem;color:#a0b4c8;margin-top:4px;">${data.city || city}</div>
+                        <div style="font-size:0.7rem;color:#6a7a8f;margin-top:2px;">منبع: Open-Meteo</div>
+                        <div class="details">
+                            <div class="detail-item">
+                                <div class="label">رطوبت</div>
+                                <div class="value">${humidity}%</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="label">بارش</div>
+                                <div class="value">${precipitation} mm</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="label">باد</div>
+                                <div class="value">${wind_speed} km/h</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="label">فشار</div>
+                                <div class="value">${pressure}</div>
+                            </div>
+                        </div>
+                        ${forecastHtml}
                     </div>
-                    <div class="detail-item">
-                        <div class="label">بارش</div>
-                        <div class="value">${precipitation} mm</div>
+                `;
+            })
+            .catch(err => {
+                widget.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="fas fa-exclamation-triangle fa-4x mb-3 d-block text-danger opacity-50"></i>
+                        <p class="text-muted-custom">خطا در دریافت اطلاعات: ${err.message}</p>
+                        <small class="text-muted-custom">لطفاً دوباره تلاش کنید یا شهر دیگری را جستجو کنید</small>
                     </div>
-                    <div class="detail-item">
-                        <div class="label">باد</div>
-                        <div class="value">${wind_speed} km/h</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="label">فشار</div>
-                        <div class="value">${pressure}</div>
-                    </div>
-                </div>
-                ${forecastHtml}
-            </div>
-        `;
-    })
-    .catch(err => {
-        widget.innerHTML = `
-            <div class="text-center py-4">
-                <i class="fas fa-exclamation-triangle fa-4x mb-3 d-block text-danger opacity-50"></i>
-                <p class="text-muted-custom">خطا در دریافت اطلاعات: ${err.message}</p>
-                <small class="text-muted-custom">لطفاً دوباره تلاش کنید یا شهر دیگری را جستجو کنید</small>
-            </div>
-        `;
-    });
-}
+                `;
+            });
+        }
 
         // ======================== اخبار ========================
         function loadWeatherNews() {
@@ -1477,7 +1477,7 @@ function getWeatherForCity(city) {
 
             document.getElementById('mycity-tab').addEventListener('shown.bs.tab', function() {
                 if (!currentCity) {
-                    detectLocation();
+                    // فقط پیام نمایش بده
                 }
             });
 
@@ -1524,9 +1524,6 @@ function getWeatherForCity(city) {
             }
             if (document.getElementById('messages-tab').classList.contains('active')) {
                 loadUserMessages();
-            }
-            if (document.getElementById('mycity-tab').classList.contains('active')) {
-                setTimeout(detectLocation, 500);
             }
         });
 
@@ -1972,11 +1969,9 @@ function getWeatherForCity(city) {
         window.callWeatherAPI = callWeatherAPI;
         window.callConsultationAPI = callConsultationAPI;
         window.searchCity = searchCity;
-        window.detectLocation = detectLocation;
         window.getWeatherForCity = getWeatherForCity;
         window.loadWeatherNews = loadWeatherNews;
         window.loadUserMessages = loadUserMessages;
-        window.fallbackSearch = fallbackSearch;
         window.loadFiles = loadFiles;
     </script>
 </body>
