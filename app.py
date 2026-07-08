@@ -448,6 +448,7 @@ def get_weather_by_city(city_name):
         return {'error': str(e), 'city': city_name}
 
 def get_weather_news_iran():
+    """دریافت اخبار هواشناسی فقط از شهرخبر"""
     news_items = []
     try:
         url = "https://www.shahrekhabar.com/tag/%D9%87%D9%88%D8%A7%D8%B4%D9%86%D8%A7%D8%B3%DB%8C"
@@ -459,7 +460,7 @@ def get_weather_news_iran():
         if response.status_code == 200:
             soup = BeautifulSoup(response.text, 'html.parser')
             articles = soup.find_all('article') or soup.find_all('div', class_=re.compile('.*item.*|.*news.*|.*post.*', re.I))
-            for article in articles[:10]:
+            for article in articles[:15]:
                 title_elem = article.find('h2') or article.find('h3') or article.find('h1')
                 if not title_elem:
                     title_elem = article.find('a')
@@ -482,50 +483,12 @@ def get_weather_news_iran():
         print(f"⚠️ خطا در دریافت اخبار شهرخبر: {e}")
     return news_items
 
-def get_weather_news_euronews():
-    news_items = []
-    try:
-        url = "https://parsi.euronews.com/weather"
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
-        }
-        response = requests.get(url, headers=headers, timeout=20)
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, 'html.parser')
-            articles = soup.find_all('article') or soup.find_all('div', class_=re.compile('.*story.*|.*card.*|.*item.*|.*post.*', re.I))
-            for article in articles[:10]:
-                title_elem = article.find('h2') or article.find('h3') or article.find('h1')
-                if not title_elem:
-                    title_elem = article.find('a')
-                if title_elem:
-                    title = title_elem.text.strip()
-                    link = title_elem.get('href') if title_elem.name == 'a' else None
-                    if not link:
-                        link_elem = article.find('a')
-                        if link_elem:
-                            link = link_elem.get('href')
-                    if link and not link.startswith('http'):
-                        link = 'https://parsi.euronews.com' + link
-                    if title and len(title) > 10:
-                        news_items.append({
-                            'title': title[:150],
-                            'link': link or '#',
-                            'source': 'یورونیوز'
-                        })
-    except Exception as e:
-        print(f"⚠️ خطا در دریافت اخبار یورونیوز: {e}")
-    return news_items
-
 def get_weather_news_combined():
+    """دریافت اخبار هواشناسی فقط از شهرخبر"""
     all_news = []
     iran_news = get_weather_news_iran()
     for item in iran_news:
         item['title'] = '🇮🇷 ' + item['title']
-        all_news.append(item)
-    global_news = get_weather_news_euronews()
-    for item in global_news:
-        item['title'] = '🌍 ' + item['title']
         all_news.append(item)
     if not all_news:
         all_news = get_weather_news_fallback()
@@ -534,7 +497,7 @@ def get_weather_news_combined():
 def get_weather_news_fallback():
     news_items = []
     try:
-        url = "https://news.google.com/rss/search?q=weather&hl=en&gl=US&ceid=US:en"
+        url = "https://news.google.com/rss/search?q=weather+iran&hl=en&gl=US&ceid=US:en"
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
         response = requests.get(url, headers=headers, timeout=15)
         if response.status_code == 200:
@@ -545,7 +508,7 @@ def get_weather_news_fallback():
                 link = item.link.text if item.link else '#'
                 if title and len(title) > 5:
                     news_items.append({
-                        'title': '🌍 ' + title[:150],
+                        'title': '🇮🇷 ' + title[:150],
                         'link': link,
                         'source': 'Google News'
                     })
