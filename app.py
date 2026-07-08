@@ -895,6 +895,34 @@ def logout():
     return redirect(url_for('login'))
 
 # ======================== پنل ادمین ========================
+@app.route('/api/order/<int:order_id>/detail')
+@login_required
+@admin_required
+def api_order_detail(order_id):
+    """دریافت جزئیات سفارش برای نمایش در مودال"""
+    try:
+        order = Order.query.get_or_404(order_id)
+        user = User.query.get(order.user_id)
+        
+        return jsonify({
+            'order_id': order.order_id,
+            'username': user.username if user else 'نامشخص',
+            'email': user.email if user else 'نامشخص',
+            'amount': order.amount_usdt,
+            'account_type': order.account_type,
+            'account_label': get_account_type_label(order.account_type),
+            'status': order.status,
+            'status_label': {
+                'pending': '⏳ در انتظار تایید',
+                'paid': '✅ تایید شده',
+                'rejected': '❌ رد شده'
+            }.get(order.status, order.status),
+            'created_at': order.created_at.strftime('%Y-%m-%d %H:%M') if order.created_at else '-',
+            'txid': order.txid or ''
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+        
 @app.route('/admin/order/<int:order_id>/status', methods=['POST'])
 @login_required
 @admin_required
